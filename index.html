@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sol Klarnet Dinleyici</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#ECEFEE; --surface:#FFFFFF; --sunk:#E3E8E6;
+    --ink:#131A19; --muted:#5B6A67; --line:#D2DAD8;
+    --accent:#A8502A; --accent-ink:#8C3F1E; --teal:#1C5B59; --ok:#2E7D5B;
+    --display:"Fraunces",Georgia,"Times New Roman",serif;
+    --ui:"Commissioner",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0E1413; --surface:#171F1E; --sunk:#111817;
+      --ink:#E7EDEB; --muted:#94A3A0; --line:#27312F;
+      --accent:#E08A5C; --accent-ink:#F0A97F; --teal:#5FB3AE; --ok:#4FB98A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1413; --surface:#171F1E; --sunk:#111817;
+    --ink:#E7EDEB; --muted:#94A3A0; --line:#27312F;
+    --accent:#E08A5C; --accent-ink:#F0A97F; --teal:#5FB3AE; --ok:#4FB98A;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--ui);margin:0}
+  .page{max-width:940px;margin:0 auto;padding-inline:16px;padding-block:28px 40px}
+
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
+  h1{font-family:var(--display);font-size:clamp(28px,5vw,40px);font-weight:700;
+     margin:6px 0 8px;letter-spacing:-.01em;text-wrap:balance}
+  .lede{color:var(--muted);font-size:14px;line-height:1.6;max-width:62ch;margin:0}
+
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0 18px}
+  button{font:600 15px/1 var(--ui);background:var(--accent);color:var(--surface);
+    border:0;border-radius:999px;padding:12px 22px;cursor:pointer}
+  button:hover{background:var(--accent-ink)}
+  button.listening{background:var(--sunk);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+  button:focus-visible,select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  select{font:500 13px var(--ui);background:var(--surface);color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+  .chip{font:500 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px}
+  .chip.live{color:var(--ok);border-color:var(--ok)}
+
+  .grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+
+  .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .perde{font-family:var(--display);font-size:clamp(38px,8vw,60px);font-weight:600;
+    line-height:1.05;margin:8px 0 4px;letter-spacing:-.02em}
+  .perde.resting{color:var(--muted)}
+  .koma{font-family:var(--mono);font-size:13px;color:var(--accent);min-height:19px}
+
+  .meter{margin:24px 0 4px}
+  .track{position:relative;height:56px;background:var(--sunk);border-radius:10px;overflow:hidden}
+  .tick{position:absolute;top:10px;bottom:20px;width:1px;background:var(--line)}
+  .tick.mid{top:6px;bottom:16px;width:2px;background:var(--ok)}
+  .ticklab{position:absolute;bottom:4px;transform:translateX(-50%);font:400 10px var(--mono);color:var(--muted)}
+  .needle{position:absolute;top:6px;bottom:14px;width:4px;border-radius:2px;background:var(--accent);
+    left:50%;margin-left:-2px;transition:left .08s linear}
+  @media (prefers-reduced-motion: reduce){.needle{transition:none}}
+  .centnow{font:500 12px var(--mono);color:var(--muted);margin-top:8px;text-align:center}
+
+  .data{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+  .data .v{font-family:var(--mono);font-size:19px;font-weight:500;margin-top:5px;font-variant-numeric:tabular-nums}
+  .data .v em{font-style:normal;color:var(--muted);font-size:13px}
+
+  .fingerhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px}
+  .reg{font-size:11px;color:var(--muted)}
+  .fcode{display:block;font-family:var(--mono);font-size:13px;color:var(--teal);
+    background:var(--sunk);border-radius:8px;padding:9px 11px;margin-bottom:14px;overflow-x:auto;white-space:nowrap}
+  svg.chart{width:100%;height:auto;display:block}
+  .hole{fill:var(--surface);stroke:var(--muted);stroke-width:2.4}
+  .hole.on{fill:var(--accent);stroke:var(--accent)}
+  .key{fill:var(--sunk);stroke:var(--line);stroke-width:1.4}
+  .key.on{fill:var(--accent);stroke:var(--accent)}
+  .klab{font:500 10px var(--mono);fill:var(--muted)}
+  .tube{fill:var(--sunk);stroke:var(--line);stroke-width:1.4}
+  .hand{font:600 9px var(--ui);letter-spacing:.12em;fill:var(--muted)}
+  .legend{font-size:11.5px;color:var(--muted);line-height:1.7;margin-top:12px}
+
+  footer{margin-top:26px;font-size:12px;color:var(--muted);line-height:1.7;max-width:70ch}
+  a{color:var(--teal)}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Oehler / Albert · AEU 53 koma</div>
+    <h1>Sol Klarnet Dinleyici</h1>
+    <p class="lede">Çaldığın sesi mikrofondan dinler; perdeyi, yazılı ve duyulan nota adını, frekansı ve o notanın temel parmak pozisyonunu gösterir.</p>
+  </header>
+
+  <div class="controls">
+    <button id="btn">Mikrofonu başlat</button>
+    <select id="trans" aria-label="Transpozisyon">
+      <option value="5" selected>Sol klarnet — yazılı = duyulan + 4'lü</option>
+      <option value="0">Transpozisyon yok — yazılı = duyulan</option>
+    </select>
+    <span class="chip" id="chip">örnek gösterim</span>
+  </div>
+
+  <main class="grid">
+    <section class="card">
+      <div class="label">AEU perdesi</div>
+      <div class="perde resting" id="perde">Rast</div>
+      <div class="koma" id="koma">+0,0 koma sapma</div>
+
+      <div class="meter">
+        <div class="track" id="track">
+          <div class="tick" style="left:0%"></div>
+          <div class="tick" style="left:25%"></div>
+          <div class="tick mid" style="left:50%"></div>
+          <div class="tick" style="left:75%"></div>
+          <div class="tick" style="left:100%"></div>
+          <div class="ticklab" style="left:6%">−50</div>
+          <div class="ticklab" style="left:25%">−25</div>
+          <div class="ticklab" style="left:50%">0</div>
+          <div class="ticklab" style="left:75%">+25</div>
+          <div class="ticklab" style="left:94%">+50</div>
+          <div class="needle" id="needle"></div>
+        </div>
+        <div class="centnow" id="centtxt">tampere nota sapması: 0 sent</div>
+      </div>
+
+      <div class="data">
+        <div>
+          <div class="label">Yazılı nota</div>
+          <div class="v" id="written">Sol4 <em>G4</em></div>
+        </div>
+        <div>
+          <div class="label">Duyulan ses</div>
+          <div class="v" id="sounding">Re4 <em>D4</em></div>
+        </div>
+        <div>
+          <div class="label">Frekans</div>
+          <div class="v" id="hz">293,7 <em>Hz</em></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <div class="fingerhead">
+        <div class="label">Parmak pozisyonu</div>
+        <span class="reg" id="reg">Chalumeau</span>
+      </div>
+      <code class="fcode" id="fcode">---|---</code>
+      <svg class="chart" viewBox="0 0 300 592" role="img" aria-label="Oehler klarnet parmak şeması">
+        <rect class="tube" x="118" y="44" width="62" height="506" rx="26"/>
+        <text x="4" y="56" class="hand">SOL EL</text>
+        <text x="4" y="350" class="hand">SAĞ EL</text>
+
+        <rect id="k-R" class="key" x="54" y="58" width="50" height="20" rx="9"/>
+        <text x="72" y="72" class="klab">R</text>
+        <circle id="k-T" class="hole" cx="100" cy="110" r="12"/>
+        <text x="66" y="114" class="klab">T</text>
+
+        <rect id="k-A" class="key" x="192" y="90" width="44" height="20" rx="9"/>
+        <text x="206" y="104" class="klab">A</text>
+        <rect id="k-Gs-throat" class="key" x="192" y="120" width="44" height="20" rx="9"/>
+        <text x="202" y="134" class="klab">G#</text>
+
+        <circle id="h-lh1" class="hole" cx="149" cy="168" r="15"/>
+        <text x="126" y="173" class="klab">1</text>
+        <circle id="h-lh2" class="hole" cx="149" cy="218" r="15"/>
+        <text x="126" y="223" class="klab">2</text>
+        <circle id="h-lh3" class="hole" cx="149" cy="268" r="15"/>
+        <text x="126" y="273" class="klab">3</text>
+
+        <rect id="k-F-lh" class="key" x="192" y="208" width="38" height="20" rx="9"/>
+        <text x="204" y="222" class="klab">F</text>
+        <rect id="k-Eb-lh" class="key" x="192" y="258" width="38" height="20" rx="9"/>
+        <text x="200" y="272" class="klab">Eb</text>
+
+        <rect id="k-E-lh"  class="key" x="6"   y="300" width="34" height="22" rx="9"/>
+        <text x="19" y="315" class="klab">E</text>
+        <rect id="k-Fs-lh" class="key" x="46"  y="300" width="34" height="22" rx="9"/>
+        <text x="55" y="315" class="klab">F#</text>
+        <rect id="k-Gs-lh" class="key" x="86"  y="300" width="34" height="22" rx="9"/>
+        <text x="95" y="315" class="klab">G#</text>
+        <rect id="k-Bb-lh" class="key" x="126" y="300" width="34" height="22" rx="9"/>
+        <text x="135" y="315" class="klab">Bb</text>
+        <rect id="k-Cs-lh" class="key" x="166" y="300" width="34" height="22" rx="9"/>
+        <text x="175" y="315" class="klab">C#</text>
+
+        <rect id="k-4-rh" class="key" x="192" y="348" width="38" height="20" rx="9"/>
+        <text x="207" y="362" class="klab">4</text>
+        <rect id="k-3-rh" class="key" x="192" y="378" width="38" height="20" rx="9"/>
+        <text x="207" y="392" class="klab">3</text>
+
+        <circle id="h-rh1" class="hole" cx="149" cy="378" r="15"/>
+        <text x="126" y="383" class="klab">1</text>
+        <circle id="h-rh2" class="hole" cx="149" cy="428" r="15"/>
+        <text x="126" y="433" class="klab">2</text>
+        <circle id="h-rh3" class="hole" cx="149" cy="478" r="15"/>
+        <text x="126" y="483" class="klab">3</text>
+
+        <rect id="k-Bb-rh" class="key" x="192" y="418" width="38" height="20" rx="9"/>
+        <text x="200" y="432" class="klab">Bb</text>
+
+        <rect id="k-F-rh"  class="key" x="86"  y="512" width="34" height="22" rx="9"/>
+        <text x="99" y="527" class="klab">F</text>
+        <rect id="k-Gs-rh" class="key" x="126" y="512" width="34" height="22" rx="9"/>
+        <text x="135" y="527" class="klab">G#</text>
+      </svg>
+      <div class="legend">Dolu daire: delik kapalı · Dolu dikdörtgen: perde basılı · <strong>R</strong> register perdesi · <strong>T</strong> başparmak deliği</div>
+    </aside>
+  </main>
+
+  <footer>
+    Parmak verisi <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html" target="_blank" rel="noopener">Woodwind Fingering Guide — Oehler/Albert chalumeau</a> ve
+    <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_2.html" target="_blank" rel="noopener">klarino</a> sayfalarından, her nota için temel (ilk) parmak.
+    Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Diyapazon La = 440 Hz. Kapsam: yazılı Mi3 – Do6.
+  </footer>
+</div>
+
+<script>
+// ===== CORE START =====
+const A4_HZ = 440;
+const NOTE_EN = ["C","C♯","D","E♭","E","F","F♯","G","G♯","A","B♭","B"];
+const NOTE_TR = ["Do","Do♯","Re","Mi♭","Mi","Fa","Fa♯","Sol","Sol♯","La","Si♭","Si"];
+
+const FINGERINGS = {
+  52:"T 123E|123F", 53:"T 123|123F",  54:"T 123F#|123F", 55:"T 123|123",
+  56:"T 123|123G#", 57:"T 123|12-",   58:"T 123|12Bb-",  59:"T 123|1--",
+  60:"T 123|---",   61:"T 123C#|---", 62:"T 12-|---",    63:"T 12Eb-|---",
+  64:"T 1--|---",   65:"T 1--|3---",  66:"T ---|---",    67:"---|---",
+  68:"G#---|---",   69:"A---|---",    70:"R A---|---",
+  71:"RT 123E|123F",72:"RT 123|123F", 73:"RT 123F#|123F",74:"RT 123|123",
+  75:"RT 123|123G#",76:"RT 123|12-",  77:"RT 123|12Bb-", 78:"RT 123|1--",
+  79:"RT 123|---",  80:"RT 123C#|---",81:"RT 12-|---",   82:"RT 12Eb-|---",
+  83:"RT 1--|---",  84:"RT -2-|---"
+};
+
+const PERDES = [
+  [-53,"Kaba Rast"],[-49,"Kaba Nim Zirgüle"],[-48,"Kaba Zirgüle"],[-45,"Kaba Dik Zirgüle"],
+  [-44,"Kaba Dügâh"],[-40,"Kaba Kürdî"],[-39,"Kaba Dik Kürdî"],[-36,"Kaba Segâh"],
+  [-35,"Kaba Bûselik"],[-32,"Kaba Dik Bûselik"],[-31,"Kaba Çargâh"],[-27,"Kaba Nim Hicaz"],
+  [-26,"Kaba Hicaz"],[-23,"Kaba Dik Hicaz"],[-22,"Yegâh"],[-18,"Kaba Nim Hisar"],
+  [-17,"Kaba Hisar"],[-14,"Kaba Dik Hisar"],[-13,"Hüseynî Aşîran"],[-9,"Acem Aşîran"],
+  [-8,"Dik Acem Aşîran"],[-5,"Irak"],[-4,"Geveşt"],[-1,"Dik Geveşt"],
+  [0,"Rast"],[4,"Nim Zirgüle"],[5,"Zirgüle"],[8,"Dik Zirgüle"],[9,"Dügâh"],
+  [13,"Kürdî"],[14,"Dik Kürdî"],[17,"Segâh"],[18,"Bûselik"],[21,"Dik Bûselik"],
+  [22,"Çargâh"],[26,"Nim Hicaz"],[27,"Hicaz"],[30,"Dik Hicaz"],[31,"Nevâ"],
+  [35,"Nim Hisar"],[36,"Hisar"],[39,"Dik Hisar"],[40,"Hüseynî"],[44,"Acem"],
+  [45,"Dik Acem"],[48,"Evç"],[49,"Mâhûr"],[52,"Dik Mâhûr"],[53,"Gerdâniye"],
+  [57,"Nim Şehnâz"],[58,"Şehnâz"],[61,"Dik Şehnâz"],[62,"Muhayyer"],[66,"Sünbüle"],
+  [67,"Dik Sünbüle"],[70,"Tiz Segâh"],[71,"Tiz Bûselik"],[74,"Tiz Dik Bûselik"],[75,"Tiz Çargâh"]
+];
+
+function midiToFreq(m){ return A4_HZ * Math.pow(2,(m-69)/12); }
+function freqToMidi(f){ return 69 + 12*Math.log2(f/A4_HZ); }
+function noteName(m){
+  const pc = ((m%12)+12)%12, oct = Math.floor(m/12)-1;
+  return { tr: NOTE_TR[pc]+oct, en: NOTE_EN[pc]+oct };
+}
+function nearestPerde(comma){
+  let best=null, bd=1e9;
+  for(const [c,n] of PERDES){ const d=Math.abs(c-comma); if(d<bd){bd=d;best=[c,n];} }
+  if(!best || bd>2.5) return null;
+  return { name: best[1], comma: best[0], delta: comma-best[0] };
+}
+function parseFingering(code){
+  const out = { R:false, T:false, holes:{lh:[false,false,false], rh:[false,false,false]}, keys:[] };
+  const raw = code.replace(/\s+/g,"");
+  const bar = raw.indexOf("|");
+  if(bar<0) throw new Error("gecersiz kod: "+code);
+  let head = raw.slice(0,bar); const rh = raw.slice(bar+1);
+  while(head.length && (head[0]==="R" || head[0]==="T")){
+    if(head[0]==="R") out.R=true; else out.T=true;
+    head = head.slice(1);
+  }
+  const scan = (s, hand) => {
+    let i=0, hole=0;
+    while(i<s.length){
+      const ch=s[i];
+      if(ch==="-"){ if(hole>=3) throw new Error("fazla delik: "+code); hole++; i++; continue; }
+      if(ch>="1" && ch<="9"){
+        const d=+ch;
+        if(hole<3 && d===hole+1){ out.holes[hand][hole]=true; hole++; i++; continue; }
+        out.keys.push({hand, name:ch, pre:hole===0}); i++; continue;
+      }
+      let name=ch; i++;
+      if(i<s.length && (s[i]==="b" || s[i]==="#")){ name+=s[i]; i++; }
+      out.keys.push({hand, name, pre:hole===0});
+    }
+    if(hole!==3) throw new Error("delik sayisi 3 degil: "+code);
+  };
+  scan(head,"lh"); scan(rh,"rh");
+  return out;
+}
+function analyze(freq, transpose){
+  const concertF = freqToMidi(freq);
+  const writtenF = concertF + transpose;
+  const written = Math.round(writtenF);
+  const cents = Math.round((writtenF-written)*100);
+  const comma = (writtenF-67)*53/12;
+  return {
+    freq, cents, written,
+    writtenName: noteName(written),
+    soundingName: noteName(written-transpose),
+    perde: nearestPerde(comma),
+    fingering: FINGERINGS[written] || null,
+    register: written<=70 ? "Chalumeau" : "Klarino",
+    inRange: written>=52 && written<=84
+  };
+}
+function detectPitch(buf, sampleRate, minHz=100, maxHz=950){
+  const n = buf.length;
+  let sum=0; for(let i=0;i<n;i++) sum+=buf[i]*buf[i];
+  const rms = Math.sqrt(sum/n);
+  if(rms < 0.008) return { freq:-1, rms, clarity:0 };
+  const tauMin = Math.max(2, Math.floor(sampleRate/maxHz));
+  const tauMax = Math.min(Math.floor(sampleRate/minHz), Math.floor(n/2));
+  const nsdf = new Float32Array(tauMax+2);
+  for(let tau=tauMin; tau<=tauMax; tau++){
+    let ac=0, m=0; const lim=n-tau;
+    for(let i=0;i<lim;i++){ const a=buf[i], b=buf[i+tau]; ac+=a*b; m+=a*a+b*b; }
+    nsdf[tau] = m>0 ? 2*ac/m : 0;
+  }
+  let gmax=0;
+  for(let t=tauMin+1;t<tauMax;t++) if(nsdf[t]>gmax) gmax=nsdf[t];
+  if(gmax < 0.45) return { freq:-1, rms, clarity:gmax };
+  const thr = 0.9*gmax;
+  let pick=-1;
+  for(let t=tauMin+1;t<tauMax;t++){
+    if(nsdf[t]>nsdf[t-1] && nsdf[t]>=nsdf[t+1] && nsdf[t]>=thr){ pick=t; break; }
+  }
+  if(pick<0) return { freq:-1, rms, clarity:gmax };
+  const a=nsdf[pick-1], b=nsdf[pick], c=nsdf[pick+1];
+  const den = a - 2*b + c;
+  const shift = den!==0 ? 0.5*(a-c)/den : 0;
+  return { freq: sampleRate/(pick+shift), rms, clarity:gmax };
+}
+// ===== CORE END =====
+
+(function(){
+  const $ = id => document.getElementById(id);
+  const btn=$("btn"), chip=$("chip"), transSel=$("trans");
+  const perdeEl=$("perde"), komaEl=$("koma"), needle=$("needle"), centtxt=$("centtxt");
+  const writtenEl=$("written"), soundEl=$("sounding"), hzEl=$("hz"),
+        fcode=$("fcode"), regEl=$("reg");
+
+  const KEY_ID = k => {
+    if(k.hand==="lh"){
+      if(k.pre) return k.name==="A" ? "k-A" : (k.name==="G#" ? "k-Gs-throat" : null);
+      return {"F":"k-F-lh","Eb":"k-Eb-lh","E":"k-E-lh","F#":"k-Fs-lh",
+              "G#":"k-Gs-lh","Bb":"k-Bb-lh","C#":"k-Cs-lh"}[k.name] || null;
+    }
+    if(k.pre) return {"3":"k-3-rh","4":"k-4-rh"}[k.name] || null;
+    return {"F":"k-F-rh","G#":"k-Gs-rh","Bb":"k-Bb-rh","3":"k-3-rh","4":"k-4-rh"}[k.name] || null;
+  };
+  const ALL = ["k-R","k-T","k-A","k-Gs-throat","k-F-lh","k-Eb-lh","k-E-lh","k-Fs-lh",
+    "k-Gs-lh","k-Bb-lh","k-Cs-lh","k-4-rh","k-3-rh","k-Bb-rh","k-F-rh","k-Gs-rh",
+    "h-lh1","h-lh2","h-lh3","h-rh1","h-rh2","h-rh3"];
+
+  const tr1 = x => x.toFixed(1).replace(".", ",");
+
+  function drawFingering(code){
+    ALL.forEach(id => $(id).classList.remove("on"));
+    fcode.textContent = code || "—";
+    if(!code) return;
+    let f; try{ f = parseFingering(code); }catch(e){ fcode.textContent = code + "  (okunamadı)"; return; }
+    if(f.R) $("k-R").classList.add("on");
+    if(f.T) $("k-T").classList.add("on");
+    f.holes.lh.forEach((v,i)=>{ if(v) $("h-lh"+(i+1)).classList.add("on"); });
+    f.holes.rh.forEach((v,i)=>{ if(v) $("h-rh"+(i+1)).classList.add("on"); });
+    f.keys.forEach(k => { const id=KEY_ID(k); if(id) $(id).classList.add("on"); });
+  }
+
+  function show(r){
+    if(!r.inRange){
+      perdeEl.textContent = "Aralık dışı";
+      komaEl.textContent = "yazılı " + r.writtenName.tr + " — temel şema Mi3–Do6 arası";
+    }else{
+      perdeEl.textContent = r.perde ? r.perde.name : r.writtenName.tr;
+      komaEl.textContent = r.perde
+        ? (r.perde.delta>=0 ? "+" : "−") + tr1(Math.abs(r.perde.delta)) + " koma sapma"
+        : "bu kaba bölge için AEU perde adı yok";
+    }
+    writtenEl.innerHTML = r.writtenName.tr + " <em>" + r.writtenName.en + "</em>";
+    soundEl.innerHTML  = r.soundingName.tr + " <em>" + r.soundingName.en + "</em>";
+    hzEl.innerHTML     = tr1(r.freq) + " <em>Hz</em>";
+    centtxt.textContent = "tampere nota sapması: " + (r.cents>0?"+":"") + r.cents + " sent";
+    needle.style.left = Math.max(0, Math.min(100, 50 + r.cents)) + "%";
+    regEl.textContent = r.inRange ? r.register : "";
+    drawFingering(r.inRange ? r.fingering : null);
+  }
+
+  // Sayfa açılışında örnek: duyulan Re4 = yazılı Sol4 = Rast
+  show(analyze(midiToFreq(62), 5));
+
+  let ctx=null, stream=null, analyser=null, buf=null, running=false, raf=null, lastT=0;
+  const hist=[];
+
+  async function start(){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      chip.textContent = "bu ortamda mikrofon açılamıyor"; return;
+    }
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ audio:{
+        echoCancellation:false, noiseSuppression:false, autoGainControl:false }});
+    }catch(e){
+      chip.textContent = "mikrofon açılamadı (" + e.name + ") — HTML dosyasını tarayıcıda aç";
+      return;
+    }
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await ctx.resume();
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 4096;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    buf = new Float32Array(analyser.fftSize);
+    running = true;
+    btn.textContent = "Durdur"; btn.classList.add("listening");
+    chip.textContent = "dinliyor"; chip.classList.add("live");
+    perdeEl.classList.remove("resting");
+    loop();
+  }
+  function stop(){
+    running=false;
+    if(raf) cancelAnimationFrame(raf);
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    if(ctx) ctx.close();
+    btn.textContent = "Mikrofonu başlat"; btn.classList.remove("listening");
+    chip.textContent = "durdu"; chip.classList.remove("live");
+  }
+  function loop(){
+    if(!running) return;
+    raf = requestAnimationFrame(loop);
+    const now = performance.now();
+    if(now - lastT < 45) return;
+    lastT = now;
+    analyser.getFloatTimeDomainData(buf);
+    const d = detectPitch(buf, ctx.sampleRate);
+    if(d.freq > 0){
+      hist.push(d.freq); if(hist.length>5) hist.shift();
+      const med = [...hist].sort((a,b)=>a-b)[Math.floor(hist.length/2)];
+      show(analyze(med, +transSel.value));
+      perdeEl.style.opacity = 1;
+      chip.textContent = "dinliyor";
+    }else{
+      hist.length = 0;
+      perdeEl.style.opacity = .45;
+      if(running) chip.textContent = "sessiz";
+    }
+  }
+  btn.addEventListener("click", () => running ? stop() : start());
+  transSel.addEventListener("change", () => {
+    hist.length = 0;
+    if(!running) show(analyze(midiToFreq(62), +transSel.value));
+  });
+})();
+</script>
+</body>
+</html>
