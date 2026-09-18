@@ -4,8 +4,8 @@ const html = fs.readFileSync(require('path').join(__dirname,'index.html'),'utf8'
 const core = html.split('// ===== CORE START =====')[1].split('// ===== CORE END =====')[0];
 const ctx = {};
 vm.createContext(ctx);
-vm.runInContext(core + '\nthis.API={analyze,parseFingering,detectPitch,midiToFreq,FINGERINGS,PERDES,nearestPerde};', ctx);
-const { analyze, parseFingering, detectPitch, midiToFreq, FINGERINGS } = ctx.API;
+vm.runInContext(core + '\nthis.API={analyze,parseFingering,detectPitch,midiToFreq,FINGERINGS,PERDES,nearestPerde,perdeFreq};', ctx);
+const { analyze, parseFingering, detectPitch, midiToFreq, FINGERINGS, nearestPerde, perdeFreq } = ctx.API;
 
 let fail = 0;
 const ok = (c,msg,extra='') => { console.log((c?'  OK  ':'  FAIL') + ' ' + msg + (extra?'   '+extra:'')); if(!c) fail++; };
@@ -92,6 +92,29 @@ ok(detectPitch(noise, sr).freq === -1, 'beyaz gurultuyu reddediyor');
 
 console.log('\n[7] Aralik disi');
 ok(analyze(midiToFreq(90),5).inRange===false, 'cok tiz ses -> aralik disi');
+
+console.log('\n[8] Nota seridi: AEU koma frekanslari ve klavye eslemesi');
+let stripErr = [];
+for(let w=52; w<=84; w++){
+  const f = perdeFreq(w, 5);
+  const r = analyze(f, 5);
+  const p = nearestPerde((w-67)*53/12);
+  if(r.written !== w) stripErr.push(`${w}: geri okumada ${r.written}`);
+  if((r.perde?r.perde.name:null) !== (p?p.name:null)) stripErr.push(`${w}: perde adi tutmadi`);
+  if(p && Math.abs(r.perde.delta) > 0.01) stripErr.push(`${w}: ${p.name} komasindan sapma ${r.perde.delta.toFixed(2)}`);
+  if(!FINGERINGS[w]) stripErr.push(`${w}: parmak kodu yok`);
+}
+ok(stripErr.length===0, '33 notanin tamami: dogru perde, tam koma yuksekligi, parmak kodu var', stripErr.join(' | '));
+ok(Math.abs(perdeFreq(67,5) - midiToFreq(62)) < 1e-9, 'Rast (yazili Sol4) = duyulan Re4 = 293,66 Hz', perdeFreq(67,5).toFixed(2)+' Hz');
+ok(Math.abs(perdeFreq(52,5) - midiToFreq(47)) < 1e-9, 'perde adi olmayan kaba bolge (Mi3) tampere kaliyor');
+ok(Math.abs(1200*Math.log2(perdeFreq(76,5)/midiToFreq(71))) > 5, 'Huseyni (yazili La5) tampereden duyulur sekilde ayri', (1200*Math.log2(perdeFreq(76,5)/midiToFreq(71))).toFixed(1)+' sent');
+ok(Math.abs(perdeFreq(67,0) - midiToFreq(67)) < 1e-9, 'transpozisyon kapaliyken yazili = duyulan');
+
+const uiSrc = html.split('const KEYCODES = [')[1];
+const codes = uiSrc.split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
+const labels = uiSrc.split('const KEYLABEL = [')[1].split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
+ok(codes.length===33 && labels.length===33, 'klavye eslemesi 33 nota (Mi3-Do6) kapsiyor', `${codes.length} kod / ${labels.length} etiket`);
+ok(new Set(codes).size===33, 'ayni tus iki notaya baglanmamis');
 
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);
