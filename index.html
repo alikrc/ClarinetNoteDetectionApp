@@ -522,6 +522,23 @@ function detectPitch(buf, sampleRate, minHz=100, maxHz=950){
   let ctx=null, stream=null, analyser=null, buf=null, running=false, raf=null, lastT=0;
   const hist=[];
 
+  // Dinlerken ekranın uykuya geçmesini engelle (Screen Wake Lock API).
+  // Sekme arka plana gidince tarayıcı kilidi otomatik bırakır; geri gelince yeniden alınır.
+  let wakeLock=null;
+  async function keepAwake(){
+    if(!("wakeLock" in navigator) || wakeLock) return;
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    }catch(e){ wakeLock = null; }
+  }
+  function letSleep(){
+    if(wakeLock){ wakeLock.release(); wakeLock = null; }
+  }
+  document.addEventListener("visibilitychange", () => {
+    if(running && document.visibilityState === "visible") keepAwake();
+  });
+
   async function start(){
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       chip.textContent = "bu ortamda mikrofon açılamıyor"; return;
@@ -543,10 +560,12 @@ function detectPitch(buf, sampleRate, minHz=100, maxHz=950){
     btn.textContent = "Durdur"; btn.classList.add("listening");
     chip.textContent = "dinliyor"; chip.classList.add("live");
     perdeEl.classList.remove("resting");
+    keepAwake();
     loop();
   }
   function stop(){
     running=false;
+    letSleep();
     if(raf) cancelAnimationFrame(raf);
     if(stream) stream.getTracks().forEach(t=>t.stop());
     if(ctx) ctx.close();
