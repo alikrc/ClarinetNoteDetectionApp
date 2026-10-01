@@ -1,0 +1,14 @@
+{
+  "name": "Sol Klarnet Dinleyici",
+  "short_name": "Sol Klarnet",
+  "description": "Sol klarnet için perde, koma sapması ve Albert sistem parmak pozisyonu gösteren akort aracı.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ECEFEE",
+  "theme_color": "#1C5B59",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

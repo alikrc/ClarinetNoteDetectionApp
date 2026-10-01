@@ -1,0 +1,10 @@
+{
+  "name": "clarinet-note-detection-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sol klarnet için mikrofonla perde ve parmak pozisyonu gösteren akort aracı",
+  "scripts": {
+    "test": "node test.js",
+    "start": "npx --yes http-server -c-1 -p 8080 ."
+  }
+}

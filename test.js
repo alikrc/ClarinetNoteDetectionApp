@@ -1,18 +1,15 @@
 const fs = require('fs');
-const vm = require('vm');
 const html = fs.readFileSync(require('path').join(__dirname,'index.html'),'utf8');
-const core = html.split('// ===== CORE START =====')[1].split('// ===== CORE END =====')[0];
-const ctx = {};
-vm.createContext(ctx);
-vm.runInContext(core + '\nthis.API={analyze,parseFingering,detectPitch,midiToFreq,FINGERINGS,PERDES,nearestPerde,perdeFreq};', ctx);
-const { analyze, parseFingering, detectPitch, midiToFreq, FINGERINGS, nearestPerde, perdeFreq } = ctx.API;
+const { analyze, parseFingering, detectPitch, midiToFreq, FINGERINGS, nearestPerde, perdeFreq,
+        keyInfo, describeFingering, setA4, getA4, sensitivityToRms, NoteStabilizer, noteKey } = require('./core.js');
 
 let fail = 0;
 const ok = (c,msg,extra='') => { console.log((c?'  OK  ':'  FAIL') + ' ' + msg + (extra?'   '+extra:'')); if(!c) fail++; };
 
 console.log('\n[1] Tum parmak kodlari parse ediliyor mu (3+3 delik, bilinen perdeler)');
-const KNOWN_LH_PRE=['A','G#'], KNOWN_LH_POST=['F','Eb','E','F#','G#','Bb','C#'];
-const KNOWN_RH_PRE=['3','4'], KNOWN_RH_POST=['F','G#','Bb'];
+// Albert sistem (Türk Sol klarneti) mandalları — WFG: "RT AG#12Eb3C# E F#|1341a2Bb3G# F"
+const KNOWN_LH_PRE=['A','G#'], KNOWN_LH_POST=['Eb','E','F#','C#'];
+const KNOWN_RH_PRE=['1','3','4'], KNOWN_RH_POST=['F','G#','Bb'];
 let parseErr=0, keyErr=[];
 for (const [m,code] of Object.entries(FINGERINGS)){
   try{
@@ -24,7 +21,7 @@ for (const [m,code] of Object.entries(FINGERINGS)){
   }catch(e){ parseErr++; console.log('   parse hatasi:', m, code, e.message); }
 }
 ok(parseErr===0, '33 kodun tamami parse edildi');
-ok(keyErr.length===0, 'tum perde adlari diyagramda tanimli', keyErr.join(' | '));
+ok(keyErr.length===0, 'tum mandallar Albert sistemde var', keyErr.join(' | '));
 
 console.log('\n[2] Ornek parmaklar dogru cozumleniyor mu');
 const g4 = parseFingering(FINGERINGS[67]);
@@ -115,6 +112,62 @@ const codes = uiSrc.split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
 const labels = uiSrc.split('const KEYLABEL = [')[1].split('];')[0].match(/"[^"]+"/g).map(x=>x.slice(1,-1));
 ok(codes.length===33 && labels.length===33, 'klavye eslemesi 33 nota (Mi3-Do6) kapsiyor', `${codes.length} kod / ${labels.length} etiket`);
 ok(new Set(codes).size===33, 'ayni tus iki notaya baglanmamis');
+
+console.log('\n[9] Parmak semasi: her mandal SVG\'de cizili, talimat uretiliyor');
+let svgErr = [];
+for(const [m,code] of Object.entries(FINGERINGS)){
+  for(const k of parseFingering(code).keys){
+    const info = keyInfo(k);
+    if(!info) svgErr.push(m+' '+k.hand+' '+k.name+' esleme yok');
+    else if(!html.includes('id="'+info.id+'"')) svgErr.push(m+' '+info.id+' SVG\'de yok');
+  }
+  try{ describeFingering(code); }catch(e){ svgErr.push(m+' talimat: '+e.message); }
+}
+for(const id of ['k-R','h-T','h-lh1','h-lh2','h-lh3','h-rh1','h-rh2','h-rh3'])
+  if(!html.includes('id="'+id+'"')) svgErr.push(id+' SVG\'de yok');
+ok(svgErr.length===0, '33 parmagin tum mandal ve delikleri semada var', svgErr.join(' | '));
+const dE3 = describeFingering(FINGERINGS[52]);
+ok(dE3[0].text.includes('kapat') && dE3[2].text==='Mi mandalı' && dE3[4].text==='Fa mandalı' && dE3[1].text==='üç delik kapalı',
+   'Mi3 talimati: basparmak kapali, sol serce Mi, sag serce Fa', JSON.stringify(dE3.map(r=>r.text)));
+const dBb = describeFingering(FINGERINGS[70]);
+ok(dBb[0].text.includes('register') && !dBb[0].text.includes('kapat') && dBb[1].text.includes('La mandalı'),
+   'Si♭4 talimati: sadece register + La mandali', JSON.stringify(dBb.map(r=>r.text)));
+const dF4 = describeFingering(FINGERINGS[65]);
+ok(dF4[3].text.includes('2. yan mandal') && dF4[3].text.includes('tüm delikler açık'), 'Fa4 talimati: sag 2. yan mandal (WFG 3 = ortadaki)');
+ok(describeFingering(FINGERINGS[63])[1].text.includes('Mi♭ ince mandalı (yüzük'), 'Mi♭4: ince mandala yuzuk parmagi basiyor');
+ok(describeFingering(FINGERINGS[58])[3].text.includes('Si♭ ince mandalı (yüzük'), 'Si♭3: sag ince mandala yuzuk parmagi basiyor');
+ok(describeFingering(FINGERINGS[67]).every(r=>!r.active), 'Sol4 (bos parmak): hicbir sey basili degil');
+let oehlerErr = 0;
+for(const code of ['T 1F--|---', 'T 123G#|123', 'T 123Bb|12-']){   // WFG'deki Oehler'e ozgu alternatifler
+  try{ describeFingering(code); }catch(e){ oehlerErr++; }
+}
+ok(oehlerErr===3, 'Albert\'te olmayan Oehler mandallari (sol Fa, sol serce Sol♯/Si♭) reddediliyor');
+for(const id of ['k-F-sl','k-Gs-lp','k-Bb-lp','k-s2'])
+  ok(!html.includes('id="'+id+'"'), 'semada Oehler\'e ozgu '+id+' yok');
+
+console.log('\n[10] Diyapazon ayari');
+setA4(442);
+ok(Math.abs(midiToFreq(69)-442)<1e-9, 'La = 442 Hz ayarlaninca A4 = 442 Hz');
+const r442 = analyze(perdeFreq(67,5), 5);
+ok(r442.perde.name==='Rast' && Math.abs(r442.perde.delta)<0.01, '442 Hz\'de Rast yine tam Rast okunuyor');
+const r440at442 = analyze(293.66, 5);
+ok(r440at442.perde.delta < -0.2, '440 akortlu Re4, 442 diyapazonda pes gorunuyor', r440at442.perde.delta.toFixed(2)+' koma');
+let threw=false; try{ setA4(1000); }catch(e){ threw=true; }
+ok(threw && getA4()===442, 'gecersiz diyapazon reddediliyor');
+setA4(440);
+
+console.log('\n[11] Hassasiyet esigi');
+ok(sensitivityToRms(1) > sensitivityToRms(5) && sensitivityToRms(5) > sensitivityToRms(10), 'hassasiyet arttikca esik dusuyor');
+const soft = new Float32Array(4096); for(let i=0;i<4096;i++) soft[i]=0.006*Math.sin(2*Math.PI*293.66*i/sr);
+ok(detectPitch(soft, sr, 100, 950, sensitivityToRms(1)).freq===-1, 'kisik ses dusuk hassasiyette yok sayiliyor');
+ok(Math.abs(detectPitch(soft, sr, 100, 950, sensitivityToRms(10)).freq-293.66)<1, 'ayni ses yuksek hassasiyette algilaniyor');
+
+console.log('\n[12] Nota titremesi onleyici');
+const st = new NoteStabilizer(3);
+ok(!st.push('a') && !st.push('a') && st.push('a'), 'yeni nota 3 olcumden sonra kabul ediliyor');
+ok(!st.push('b') && st.push('a'), 'tek olcumluk sicrama gosterilen notayi degistirmiyor');
+ok(!st.push('b') && !st.push('b') && st.push('b') && st.shown==='b', 'kalici degisim 3 olcumde geciyor');
+ok(noteKey(analyze(perdeFreq(76,5),5)) !== noteKey(analyze(perdeFreq(75,5),5)), 'komsu perdeler farkli anahtar uretiyor');
 
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);
