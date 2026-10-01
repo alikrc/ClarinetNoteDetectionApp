@@ -54,3 +54,8 @@ diyapazon, hassasiyet, titreme önleyici) ve parmak şemasındaki her mandalın 
 
 Parmak verisi ve mandal adları: [Woodwind Fingering Guide — Oehler/Albert](https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html),
 [mandal açıklaması](https://www.wfg.woodwind.org/clarinet/cl_fing.html). Her nota için temel (ilk) parmak gösterilir.
+
+## Planlama
+
+- [docs/TODO.md](docs/TODO.md): mobil uygulama ve Android (Play Store) için yapılacaklar
+- [docs/BACKLOG.md](docs/BACKLOG.md): sıradaki işler (alternatif parmak pozisyonları)
