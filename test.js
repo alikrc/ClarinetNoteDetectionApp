@@ -2,7 +2,7 @@ const fs = require('fs');
 const html = fs.readFileSync(require('path').join(__dirname,'index.html'),'utf8');
 const { analyze, parseFingering, detectPitch, midiToFreq, FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE,
         fingeringsFor, fingeringIds, findFingering, nearestPerde, perdeFreq,
-        keyInfo, describeFingering, setA4, getA4, sensitivityToRms, NoteStabilizer, noteKey } = require('./core.js');
+        keyInfo, describeFingering, setA4, getA4, sensitivityToRms, NoteStabilizer, noteKey, staffPos } = require('./core.js');
 
 let fail = 0;
 const ok = (c,msg,extra='') => { console.log((c?'  OK  ':'  FAIL') + ' ' + msg + (extra?'   '+extra:'')); if(!c) fail++; };
@@ -217,6 +217,17 @@ ok(!st.push('a') && !st.push('a') && st.push('a'), 'yeni nota 3 olcumden sonra k
 ok(!st.push('b') && st.push('a'), 'tek olcumluk sicrama gosterilen notayi degistirmiyor');
 ok(!st.push('b') && !st.push('b') && st.push('b') && st.shown==='b', 'kalici degisim 3 olcumde geciyor');
 ok(noteKey(analyze(perdeFreq(76,5),5)) !== noteKey(analyze(perdeFreq(75,5),5)), 'komsu perdeler farkli anahtar uretiyor');
+
+console.log('\n[13] Dizekteki yer');
+ok(staffPos(64).step===0 && staffPos(77).step===8, 'Mi4 alt cizgi, Fa5 ust cizgi');
+ok(staffPos(67).step===2 && staffPos(60).step===-2, 'Sol4 ikinci cizgi, Do4 bir ek cizgi');
+ok(staffPos(52).step===-7, 'en pes yazili Mi3 uc ek cizginin altinda');
+ok(staffPos(70).acc==='♭' && staffPos(70).step===staffPos(71).step && staffPos(66).acc==='♯' && staffPos(66).step===staffPos(65).step,
+   'Si♭ Si ile, Fa♯ Fa ile ayni yerde; isaret dogru');
+ok(!staffPos(91).ottava && staffPos(91).step===16 && staffPos(92).ottava && staffPos(92).step===9, 'Sol♯6 ve ustu 8va ile bir oktav asagi');
+let maxStep=-99, minStep=99;
+for(let w=LOW_NOTE; w<=HIGH_NOTE; w++){ const s=staffPos(w).step; maxStep=Math.max(maxStep,s); minStep=Math.min(minStep,s); }
+ok(minStep===-7 && maxStep===16, 'tum aralik -7…16 adim icinde (sabit yukseklikli dizek)', minStep+'…'+maxStep);
 
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);

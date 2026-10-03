@@ -117,6 +117,18 @@ function noteName(m){
   const pc = ((m%12)+12)%12, oct = Math.floor(m/12)-1;
   return { tr: NOTE_TR[pc]+oct, en: NOTE_EN[pc]+oct };
 }
+// Sol anahtarlı dizekte yazılı notanın yeri. step: alt çizgi (Mi4) 0, her çizgi/aralık 1 adım;
+// 0, 2, 4, 6, 8 dizek çizgileri, eksi ve 8'den büyük çift adımlar ek çizgi.
+// Sol♯6 ve üstü (5'ten fazla ek çizgi) bir oktav aşağı yazılıp üstüne 8va konur.
+const STAFF_LETTER = [0,0,1,2,2,3,3,4,4,5,6,6];            // Do Re Mi Fa Sol La Si
+const STAFF_ACC    = ["","♯","","♭","","","♯","","♯","","♭",""];
+const OTTAVA_FROM = 92;
+function staffPos(written){
+  const ottava = written >= OTTAVA_FROM;
+  const m = ottava ? written - 12 : written;
+  const pc = ((m%12)+12)%12, oct = Math.floor(m/12)-1;
+  return { step: oct*7 + STAFF_LETTER[pc] - 30, acc: STAFF_ACC[pc], ottava };
+}
 function nearestPerde(comma){
   let best=null, bd=1e9;
   for(const [c,n] of PERDES){ const d=Math.abs(c-comma); if(d<bd){bd=d;best=[c,n];} }
@@ -323,7 +335,7 @@ class NoteStabilizer{
 function noteKey(r){ return r.written + ":" + (r.perde ? r.perde.comma : "-"); }
 
 if(typeof module !== "undefined") module.exports = {
-  SOL_TRANSPOSE, FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName,
+  SOL_TRANSPOSE, FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName, staffPos,
   nearestPerde, perdeFreq, parseFingering, keyInfo, fingeringIds, findFingering, describeFingering, analyze,
   sensitivityToRms, detectPitch, NoteStabilizer, noteKey
 };

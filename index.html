@@ -10,6 +10,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%E2%99%AF%E2%99%AD&display=swap">
 <style>
   :root{
     --paper:#ECEFEE; --surface:#FFFFFF; --sunk:#E3E8E6;
@@ -113,6 +114,15 @@
     height:34px;line-height:34px;white-space:nowrap}   /* ♭/♯ yedek fonttan gelince satır yüksekliği oynamasın */
   .fnote em{font:500 13px var(--mono);font-style:normal;color:var(--muted);margin-left:6px}
   .reg{font-size:11px;color:var(--muted)}
+  .fnoterow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px}
+  .fnoterow .fnote{margin:0}
+  svg.staff{width:150px;height:108px;flex:0 0 auto;display:block}
+  .staff .sl{stroke:var(--muted);stroke-width:1}
+  .staff .ledger{stroke:var(--ink);stroke-width:1.2}
+  .staff .clef{font:40px "Noto Music","Segoe UI Symbol","Apple Symbols",serif;fill:var(--ink)}
+  .staff .head{fill:var(--accent)}
+  .staff .acc{font:21px "Noto Music","Segoe UI Symbol",var(--ui);fill:var(--accent);text-anchor:middle}
+  .staff .va{font:italic 600 10px var(--ui);fill:var(--muted)}
 
   .fingerdetail{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
   .fingerdetail summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px}
@@ -278,7 +288,10 @@
         <div class="label" id="fingerlab">Parmak pozisyonu</div>
         <span class="reg" id="reg">Chalumeau</span>
       </div>
-      <div class="fnote" id="fnote">Sol4 <em>yazılı</em></div>
+      <div class="fnoterow">
+        <div class="fnote" id="fnote">Sol4 <em>yazılı</em></div>
+        <svg class="staff" id="staff" viewBox="0 0 150 108" role="img" aria-label="Dizekte yazılı nota"></svg>
+      </div>
 
       <svg class="chart" viewBox="0 0 320 640" role="group" aria-label="Albert sistem Türk Sol klarneti parmak şeması: çalgıcının gözünden görünüş, başparmak tarafı solda ayrıca çizili. Deliklere ve mandallara basarak parmak kurabilirsin; parmak bir notaya uyunca o nota çalar.">
         <!-- gövde -->
@@ -520,6 +533,7 @@
       paint(next);
       fcode.textContent = "—";
       fnote.textContent = "—";
+      drawStaff(null);
       altNoteEl.textContent = "";
       stepsEl.innerHTML = '<li class="idle"><span class="part">—</span><span>Bu parmak tabloda yok. Bir delik ya da mandal daha değiştir.</span></li>';
       manualMsg.textContent = "Tabloda olmayan parmak — ses yok.";
@@ -575,8 +589,37 @@
     altsEl.children[fingerIdx].focus();
   });
 
+  // ---- Dizek: yazılı notanın sol anahtarlı porte üzerindeki yeri ----
+  // Yükseklik sabit (Mi3'ün altından Sol6'ya kadar yer var) ki nota değişince şema oynamasın.
+  const staffEl = $("staff"), SVGNS = "http://www.w3.org/2000/svg";
+  const STEP = 4, BASE = 72, NOTE_X = 104;          // alt çizgi (Mi4) y=72, adım başına 4 birim
+  const sy = s => BASE - s*STEP;
+  function svgEl(tag, attrs, text){
+    const e = document.createElementNS(SVGNS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    if(text) e.textContent = text;
+    return e;
+  }
+  function drawStaff(written){
+    staffEl.replaceChildren();
+    for(let s = 0; s <= 8; s += 2) staffEl.appendChild(svgEl("line", {class:"sl", x1:4, x2:146, y1:sy(s), y2:sy(s)}));
+    staffEl.appendChild(svgEl("text", {class:"clef", x:6, y:sy(-1.5)}, "𝄞"));
+    if(written == null){ staffEl.setAttribute("aria-label", "Dizek: nota yok"); return; }
+    const p = staffPos(written);
+    for(let s = -2; s >= p.step; s -= 2)
+      staffEl.appendChild(svgEl("line", {class:"ledger", x1:NOTE_X-11, x2:NOTE_X+11, y1:sy(s), y2:sy(s)}));
+    for(let s = 10; s <= p.step; s += 2)
+      staffEl.appendChild(svgEl("line", {class:"ledger", x1:NOTE_X-11, x2:NOTE_X+11, y1:sy(s), y2:sy(s)}));
+    staffEl.appendChild(svgEl("ellipse", {class:"head", cx:NOTE_X, cy:sy(p.step), rx:5.6, ry:4,
+      transform:"rotate(-20 " + NOTE_X + " " + sy(p.step) + ")"}));
+    if(p.acc) staffEl.appendChild(svgEl("text", {class:"acc", x:NOTE_X-17, y:sy(p.step)+5}, p.acc));
+    if(p.ottava) staffEl.appendChild(svgEl("text", {class:"va", x:NOTE_X-12, y:Math.min(sy(p.step), sy(10))-10}, "8va"));
+    staffEl.setAttribute("aria-label", "Dizekte yazılı " + noteName(written).tr + (p.ottava ? ", 8va ile bir oktav aşağı yazılmış" : ""));
+  }
+
   function drawFingering(code, written){
     paint([]);
+    drawStaff(written);
     stepsEl.innerHTML = "";
     fcode.textContent = code || "—";
     fnote.innerHTML = written!=null ? noteName(written).tr + " <em>yazılı</em>" : "—";
