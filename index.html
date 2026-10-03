@@ -109,9 +109,22 @@
   canvas.trace{width:100%;height:170px;display:block;background:var(--sunk);border-radius:10px}
 
   .fingerhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px}
-  .fnote{font-family:var(--display);font-size:26px;font-weight:600;margin:2px 0 12px}
+  .fnote{font-family:var(--display);font-size:26px;font-weight:600;margin:2px 0 12px;
+    height:34px;line-height:34px;white-space:nowrap}   /* ♭/♯ yedek fonttan gelince satır yüksekliği oynamasın */
   .fnote em{font:500 13px var(--mono);font-style:normal;color:var(--muted);margin-left:6px}
   .reg{font-size:11px;color:var(--muted)}
+
+  .fingerdetail{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .fingerdetail summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px}
+  .fingerdetail:not([open]) summary{margin-bottom:0}
+  .altcount{font-weight:500}
+  .alts{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}
+  .alts:empty{display:none}
+  .alts button{border:1px solid var(--line);background:var(--sunk);color:var(--muted);font:600 12px/1 var(--ui);
+    padding:7px 11px;border-radius:999px;cursor:pointer}
+  .alts button[aria-checked="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+  .altnote{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.5}
+  .altnote:empty{display:none}
 
   .steps{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:6px}
   .steps li{display:grid;grid-template-columns:92px 1fr;gap:10px;align-items:start;
@@ -134,6 +147,14 @@
   .key.on rect{fill:var(--accent);stroke:var(--accent-ink);opacity:1}
   .key.on text{fill:#fff}
   .key .olab{fill:var(--muted);text-anchor:start;font-weight:500}
+  svg.chart .hole,svg.chart .key{cursor:pointer;outline:none}
+  svg.chart .hole:hover circle,svg.chart .key:hover rect{stroke:var(--accent);stroke-width:2.5}
+  svg.chart .hole:focus-visible circle,svg.chart .key:focus-visible rect{stroke:var(--ink);stroke-width:3}
+  .charttools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+  .charttools .reg{line-height:1.5}
+  .stopbtn{border:1px solid var(--line);background:var(--sunk);color:var(--ink);font:600 12px/1 var(--ui);
+    padding:8px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .stopbtn:disabled{color:var(--muted);cursor:default;opacity:.6}
   .key.on .olab{fill:var(--accent);font-weight:700}
   .flab{font:500 10px var(--ui);fill:var(--muted);text-anchor:end}
   .flab.r{text-anchor:start}
@@ -161,6 +182,7 @@
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
   .note:hover{background:var(--sunk);border-color:var(--accent)}
   .note.on,.note.on:hover{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+  .note.playing{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
   .note .pn{font:600 10.5px/1.3 var(--ui);color:var(--teal);min-height:28px;
     display:flex;align-items:center;text-align:center;overflow-wrap:anywhere}
   .note .nn{font-family:var(--display);font-size:18px;font-weight:600;line-height:1.1}
@@ -258,9 +280,7 @@
       </div>
       <div class="fnote" id="fnote">Sol4 <em>yazılı</em></div>
 
-      <ol class="steps" id="steps"></ol>
-
-      <svg class="chart" viewBox="0 0 320 640" role="img" aria-label="Albert sistem Türk Sol klarneti parmak şeması: çalgıcının gözünden görünüş, başparmak tarafı solda ayrıca çizili">
+      <svg class="chart" viewBox="0 0 320 640" role="group" aria-label="Albert sistem Türk Sol klarneti parmak şeması: çalgıcının gözünden görünüş, başparmak tarafı solda ayrıca çizili. Deliklere ve mandallara basarak parmak kurabilirsin; parmak bir notaya uyunca o nota çalar.">
         <!-- gövde -->
         <path class="wood" d="M148,6 L172,6 L178,46 L142,46 Z"/>
         <rect class="ring" x="134" y="44" width="52" height="6" rx="2"/>
@@ -300,7 +320,7 @@
         <!-- sol serçe -->
         <g class="key" id="k-E-lp"><rect x="190" y="334" width="38" height="22" rx="9"/><text x="209" y="349">Mi</text></g>
         <g class="key" id="k-Fs-lp"><rect x="234" y="334" width="38" height="22" rx="9"/><text x="253" y="349">Fa♯</text></g>
-        <g class="key" id="k-Cs-lp"><rect x="212" y="359" width="38" height="22" rx="9"/><text x="231" y="374">Do♯</text></g>
+        <g class="key" id="k-Cs-lp"><rect x="212" y="359" width="38" height="22" rx="9"/><text x="231" y="374">Sol♯</text></g>
         <text class="hand" x="231" y="324" text-anchor="middle">SOL SERÇE</text>
 
         <!-- sağ el -->
@@ -330,6 +350,18 @@
         <text class="hand" x="78" y="552" text-anchor="end">SERÇE</text>
       </svg>
 
+      <div class="charttools">
+        <span class="reg" id="manualmsg">Deliklere ve mandallara dokunarak parmak kur; uyan nota çalar.</span>
+        <button class="stopbtn" id="stopbtn" type="button" disabled>Sesi durdur</button>
+      </div>
+
+      <!-- Yüksekliği notaya göre değişen kısımlar şemanın altında: klarnet yerinden oynamasın -->
+      <details class="fingerdetail" id="fingerdetail" open>
+        <summary>Parmak seçimi ve adım adım talimat <span class="altcount" id="altcount"></span></summary>
+        <div class="alts" id="alts" role="radiogroup" aria-label="Parmak seçimi"></div>
+        <div class="altnote" id="altnote" aria-live="polite"></div>
+        <ol class="steps" id="steps"></ol>
+      </details>
       <div class="lg" aria-hidden="true">
         <span><i class="sw closed"></i>delik kapalı</span>
         <span><i class="sw"></i>delik açık</span>
@@ -347,16 +379,22 @@
   <section class="card strip">
     <div class="striphead">
       <div class="label">Nota şeridi — tıkla ya da klavyeden çal</div>
-      <span class="reg">AEU koma akordu · basılı tuttuğun sürece çalar</span>
+      <span class="reg">AEU koma akordu · tıkla: çal, tekrar tıkla: durdur</span>
     </div>
     <div class="rail" id="rail"></div>
-    <div class="legend">Alt sıra <strong>Z…</strong> pes, orta sıra <strong>A…</strong> orta, üst sıra <strong>Q…</strong> tiz bölge — yazılı Mi3’ten Do6’ya 33 nota. Tuşlar klavyedeki fiziksel konuma göre çalışır. Şeritten ses çalarken mikrofon kendi sesini dinlemesin diye kısa bir süre susar.</div>
+    <div class="legend">Alt sıra <strong>Z…</strong> pes, orta sıra <strong>A…</strong> orta, üst sıra <strong>Q…</strong> tiz bölge, rakam sırası <strong>1…</strong> altissimo — yazılı Mi3’ten Mi♭7’ye 48 nota (en tiz üçü yalnızca tıklanır). Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur. Ses çalarken mikrofon kendi sesini dinlemesin diye susar.</div>
   </section>
 
   <footer>
-    Parmak verisi <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html" target="_blank" rel="noopener">Woodwind Fingering Guide — Oehler/Albert chalumeau</a> ve
-    <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_2.html" target="_blank" rel="noopener">klarino</a> sayfalarından, her nota için temel (ilk) parmak (33 notanın tamamı Albert sistemde çalınabilen parmaklar); mandal adları <a href="https://www.wfg.woodwind.org/clarinet/cl_fing.html" target="_blank" rel="noopener">WFG mandal açıklamasına</a> göre.
-    Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Do6.
+    Parmak verisi Woodwind Fingering Guide'ın Oehler/Albert temel
+    (<a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html" target="_blank" rel="noopener">chalumeau</a>,
+    <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_2.html" target="_blank" rel="noopener">klarino</a>,
+    <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_3.html" target="_blank" rel="noopener">altissimo</a>) ve alternatif
+    (<a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_1.html" target="_blank" rel="noopener">1</a>,
+    <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_2.html" target="_blank" rel="noopener">2</a>,
+    <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_3.html" target="_blank" rel="noopener">3</a>,
+    <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_4.html" target="_blank" rel="noopener">4</a>) tablolarından; yalnızca Albert sistemde çalınabilen parmaklar alındı; mandal adları <a href="https://www.wfg.woodwind.org/clarinet/cl_fing.html" target="_blank" rel="noopener">WFG mandal açıklamasına</a> göre.
+    Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.
   </footer>
 </div>
 
@@ -445,26 +483,112 @@
   // ---- Parmak şeması ----
   const ALL = [...document.querySelectorAll("svg.chart .hole, svg.chart .key")];
   const FINGER_DOTS = h => h.map(x => x ? "●" : "○").join("");
+  const HOLE_NAME = { "h-T":"başparmak deliği", "k-R":"register mandalı",
+    "h-lh1":"sol işaret deliği", "h-lh2":"sol orta deliği", "h-lh3":"sol yüzük deliği",
+    "h-rh1":"sağ işaret deliği", "h-rh2":"sağ orta deliği", "h-rh3":"sağ yüzük deliği",
+    "k-E-lp":"sol serçe Mi mandalı", "k-Fs-lp":"sol serçe Fa♯ mandalı", "k-Cs-lp":"sol serçe Sol♯ mandalı",
+    "k-A":"La mandalı", "k-Gs-side":"Sol♯ yan mandalı", "k-Eb-sl":"Mi♭ ince mandalı", "k-Bb-sl":"Si♭ ince mandalı",
+    "k-s1":"sağ 1. yan mandal", "k-s3":"sağ 2. yan mandal", "k-s4":"sağ 3. yan mandal",
+    "k-Gs-rp":"sağ serçe Sol♯ mandalı", "k-F-rp":"sağ serçe Fa mandalı" };
+  // Şemayı basılı kimlik listesine göre boya; ekran okuyucu için basılı/değil durumunu da yaz
+  function paint(ids){
+    const on = new Set(ids);
+    ALL.forEach(n => {
+      n.classList.toggle("on", on.has(n.id));
+      n.setAttribute("aria-pressed", on.has(n.id) ? "true" : "false");
+    });
+  }
+  ALL.forEach(n => {
+    n.setAttribute("role", "button"); n.setAttribute("tabindex", "0");
+    n.setAttribute("aria-label", HOLE_NAME[n.id] || n.id);
+    n.addEventListener("click", () => chartPress(n.id));
+    n.addEventListener("keydown", e => {
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); chartPress(n.id); }
+    });
+  });
+
+  // ---- Klarnetten çal: delik/mandala basarak parmak kur ----
+  // Şemadaki basılı durum değiştirilir; tablodaki bir parmağa uyuyorsa o nota gösterilir ve çalar.
+  const manualMsg = $("manualmsg"), MANUAL_HINT = manualMsg.textContent;
+  function chartPress(id){
+    const ids = ALL.filter(n => n.classList.contains("on")).map(n => n.id);
+    const next = ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id];
+    const m = findFingering(next);
+    if(!m){
+      stopSound();
+      lastFingerKey = null; fingerList = []; altsEl.innerHTML = ""; altCountEl.textContent = "";
+      paint(next);
+      fcode.textContent = "—";
+      fnote.textContent = "—";
+      altNoteEl.textContent = "";
+      stepsEl.innerHTML = '<li class="idle"><span class="part">—</span><span>Bu parmak tabloda yok. Bir delik ya da mandal daha değiştir.</span></li>';
+      manualMsg.textContent = "Tabloda olmayan parmak — ses yok.";
+      markActive(null);
+      return;
+    }
+    play(m.written);
+    show(analyze(perdeFreq(m.written, T), T));
+    selectFingering(m.index);
+    manualMsg.textContent = m.also.length
+      ? "Aynı parmakla " + m.also.map(a => noteName(a.written).tr).join(", ") + " de çıkar (dudakla ayrılır)."
+      : MANUAL_HINT;
+  }
+
+  // Notanın parmakları arasında seçim: Temel / Alt. 1 / Alt. 2 …
+  const altsEl = $("alts"), altNoteEl = $("altnote");
+  let fingerList = [], fingerIdx = 0, fingerWritten = null;
+  // Talimat bölümü açılıp kapanabilir; tercih tarayıcıda saklanır
+  const detailEl = $("fingerdetail"), altCountEl = $("altcount");
+  detailEl.open = store.get("detailOpen", true);
+  detailEl.addEventListener("toggle", () => store.set("detailOpen", detailEl.open));
+
+  function showFingerings(list, written){
+    fingerList = list; fingerWritten = written; fingerIdx = 0;
+    altCountEl.textContent = list.length > 1 ? "· " + (list.length-1) + " alternatif" : "";
+    manualMsg.textContent = MANUAL_HINT;
+    altsEl.innerHTML = "";
+    if(list.length > 1) list.forEach((_, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.setAttribute("role", "radio");
+      b.textContent = i===0 ? "Temel" : "Alt. " + i;
+      b.addEventListener("click", () => selectFingering(i));
+      altsEl.appendChild(b);
+    });
+    selectFingering(0);
+  }
+  function selectFingering(i){
+    fingerIdx = i;
+    [...altsEl.children].forEach((b, k) => {
+      b.setAttribute("aria-checked", k===i ? "true" : "false");
+      b.tabIndex = k===i ? 0 : -1;
+    });
+    const f = fingerList[i];
+    altNoteEl.textContent = f ? f.note : "";
+    drawFingering(f ? f.code : null, fingerWritten);
+  }
+  // Ok tuşlarıyla seçenekler arasında gezin (radyo grubu davranışı)
+  altsEl.addEventListener("keydown", e => {
+    const n = fingerList.length, step = {ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1}[e.key];
+    if(!step || n < 2) return;
+    e.preventDefault(); e.stopPropagation();
+    selectFingering((fingerIdx + step + n) % n);
+    altsEl.children[fingerIdx].focus();
+  });
 
   function drawFingering(code, written){
-    ALL.forEach(n => n.classList.remove("on"));
+    paint([]);
     stepsEl.innerHTML = "";
     fcode.textContent = code || "—";
     fnote.innerHTML = written!=null ? noteName(written).tr + " <em>yazılı</em>" : "—";
     if(!code){
       const li = document.createElement("li"); li.className = "idle";
-      li.innerHTML = '<span class="part">—</span><span>Bu nota için temel parmak şeması yok (yazılı Mi3–Do6 arası).</span>';
+      li.innerHTML = '<span class="part">—</span><span>Bu nota için parmak şeması yok (yazılı Mi3–Mi♭7 arası).</span>';
       stepsEl.appendChild(li);
       return;
     }
-    let f, rows;
-    try{ f = parseFingering(code); rows = describeFingering(code); }
+    let rows;
+    try{ paint(fingeringIds(code)); rows = describeFingering(code); }
     catch(e){ fcode.textContent = code + "  (okunamadı)"; return; }
-    if(f.R) $("k-R").classList.add("on");
-    if(f.T) $("h-T").classList.add("on");
-    f.holes.lh.forEach((v,i)=>{ if(v) $("h-lh"+(i+1)).classList.add("on"); });
-    f.holes.rh.forEach((v,i)=>{ if(v) $("h-rh"+(i+1)).classList.add("on"); });
-    f.keys.forEach(k => { const info = keyInfo(k); if(info) $(info.id).classList.add("on"); });
     for(const r of rows){
       const li = document.createElement("li");
       if(!r.active) li.className = "idle";
@@ -487,7 +611,7 @@
     const komaMode = settings.mode==="koma" && r.inRange && r.perde;
     if(!r.inRange){
       perdeEl.textContent = "Aralık dışı";
-      komaEl.textContent = "yazılı " + r.writtenName.tr + " — temel şema Mi3–Do6 arası";
+      komaEl.textContent = "yazılı " + r.writtenName.tr + " — parmak şeması Mi3–Mi♭7 arası";
     }else{
       perdeEl.textContent = r.perde ? r.perde.name : r.writtenName.tr;
       komaEl.textContent = r.perde
@@ -518,39 +642,40 @@
     const fk = r.inRange ? r.written : null;
     if(fk !== lastFingerKey){
       lastFingerKey = fk;
-      drawFingering(r.inRange ? r.fingering : null, r.inRange ? r.written : null);
+      showFingerings(r.inRange ? r.fingerings : [], r.inRange ? r.written : null);
     }
     markActive(fk);
   }
   function sample(){ return analyze(perdeFreq(67, T), T); }   // Rast = yazılı Sol4
 
   // ---- Nota şeridi: tıkla / klavyeden çal ----
-  const LOW = 52;
+  const LOW = LOW_NOTE;
   const KEYCODES = [
     "KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash",
     "KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote",
-    "KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight"];
+    "KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight",
+    "Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus","Equal"];
   const KEYLABEL = [
     "Z","X","C","V","B","N","M","Ö","Ç",".",
     "A","S","D","F","G","H","J","K","L","Ş","İ",
-    "Q","W","E","R","T","Y","U","I","O","P","Ğ","Ü"];
+    "Q","W","E","R","T","Y","U","I","O","P","Ğ","Ü",
+    "1","2","3","4","5","6","7","8","9","0","*","-"];
   const cells = new Map();
 
-  KEYCODES.forEach((code, i) => {
+  // Şerit tüm aralığı kapsar; en tiz birkaç notanın klavye tuşu yok, yalnızca tıklanır.
+  for(let i = 0; i <= HIGH_NOTE - LOW; i++){
     const w = LOW + i, p = nearestPerde((w-67)*53/12);
     const el = document.createElement("button");
     el.className = "note"; el.type = "button";
     el.setAttribute("aria-label", (p ? p.name + ", " : "") + "yazılı " + noteName(w).tr + " çal");
     el.innerHTML = '<span class="pn">' + (p ? p.name : "—") + '</span>' +
                    '<span class="nn">' + noteName(w).tr + '</span>' +
-                   '<span class="kk">' + KEYLABEL[i] + '</span>';
-    el.addEventListener("pointerdown", e => { e.preventDefault(); noteOn(w); });
-    ["pointerup","pointerleave","pointercancel"].forEach(ev => el.addEventListener(ev, () => noteOff(w)));
-    // Klavye/ekran okuyucu ile Enter-Boşluk: kısa bir nota
-    el.addEventListener("click", e => { if(e.detail===0){ noteOn(w); setTimeout(() => noteOff(w), 600); } });
+                   (KEYLABEL[i] ? '<span class="kk">' + KEYLABEL[i] + '</span>' : '');
+    el.setAttribute("aria-pressed", "false");
+    el.addEventListener("click", () => toggleNote(w));
     $("rail").appendChild(el);
     cells.set(w, el);
-  });
+  }
 
   // Klavye düzeni Chrome'da okunabiliyorsa etiketleri gerçek harflerle değiştir
   if(navigator.keyboard && navigator.keyboard.getLayoutMap){
@@ -563,6 +688,33 @@
   }
 
   function markActive(w){ cells.forEach((el,k) => el.classList.toggle("on", k===w)); }
+
+  // ---- Ses: aynı anda tek nota, aç/kapa ----
+  let current = null;                               // çalan yazılı nota
+  const stopBtn = $("stopbtn");
+  function markPlaying(){
+    cells.forEach((el,k) => {
+      el.classList.toggle("playing", k===current);
+      el.setAttribute("aria-pressed", k===current ? "true" : "false");
+    });
+    stopBtn.disabled = current === null;
+  }
+  function play(w){
+    if(current === w) return;
+    if(current !== null) noteOff(current);
+    noteOn(w); current = w; markPlaying();
+  }
+  function stopSound(){
+    if(current === null) return;
+    noteOff(current); current = null; markPlaying();
+  }
+  // Şeritten: çalmıyorsa başlat ve göster, aynı nota çalıyorsa durdur
+  function toggleNote(w){
+    if(current === w){ stopSound(); return; }
+    play(w);
+    show(analyze(perdeFreq(w, T), T));
+  }
+  stopBtn.addEventListener("click", stopSound);
 
   let actx = null, wave = null, synthUntil = 0;
   const voices = new Map();
@@ -590,7 +742,6 @@
     osc.start();
     voices.set(w, {osc, g});
     hist.length = 0; stab.reset();
-    show(analyze(freq, T));
   }
   function noteOff(w){
     const v = voices.get(w);
@@ -608,17 +759,15 @@
     if(e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     const tag = (e.target.tagName || "").toLowerCase();
     if(tag === "select" || tag === "input" || tag === "textarea") return;
+    if(e.key === "Escape"){ stopSound(); return; }
     const i = KEYCODES.indexOf(e.code);
     if(i < 0) return;
     e.preventDefault();
-    noteOn(LOW + i);
+    toggleNote(LOW + i);
     cells.get(LOW + i).scrollIntoView({block:"nearest", inline:"nearest"});
   });
-  window.addEventListener("keyup", e => {
-    const i = KEYCODES.indexOf(e.code);
-    if(i >= 0) noteOff(LOW + i);
-  });
-  window.addEventListener("blur", () => { [...voices.keys()].forEach(noteOff); });
+  // Sekme arka plana geçince unutulan ses çalmaya devam etmesin
+  document.addEventListener("visibilitychange", () => { if(document.hidden) stopSound(); });
 
   // ---- Entonasyon izi ----
   const canvas = $("trace"), TRACE_MS = 8000;
@@ -670,11 +819,11 @@
   window.addEventListener("resize", drawTrace);
 
   // Sayfa açılışında örnek: duyulan Re4 = yazılı Sol4 = Rast
-  // Bağlantıyla belirli bir notayı aç: #nota=52 (yazılı MIDI numarası, 52–84)
+  // Bağlantıyla belirli bir notayı aç: #nota=52 (yazılı MIDI numarası, 52–99)
   function fromHash(){
     const m = /nota=(\d+)/.exec(location.hash);
     const w = m ? +m[1] : NaN;
-    return w>=LOW && w<LOW+KEYCODES.length ? analyze(perdeFreq(w, T), T) : null;
+    return w>=LOW && w<=HIGH_NOTE ? analyze(perdeFreq(w, T), T) : null;
   }
   window.addEventListener("hashchange", () => { const r = fromHash(); if(r && !running) show(r); });
   drawScale();
@@ -759,12 +908,12 @@
     analyser.getFloatTimeDomainData(buf);
     // Şeritten çalınan ses hoparlörden mikrofona girmesin
     if(voices.size || now < synthUntil){
-      chip.textContent = "şerit çalıyor";
+      chip.textContent = "örnek ses çalıyor";
       drawTrace();
       return;
     }
     const minRms = sensitivityToRms(settings.sens);
-    const d = detectPitch(buf, ctx.sampleRate, 100, 950, minRms);
+    const d = detectPitch(buf, ctx.sampleRate, 100, 2100, minRms);
     const lv = $("lvbar");
     lv.style.width = dbPos(d.rms) + "%";
     lv.classList.toggle("hot", d.rms >= minRms);

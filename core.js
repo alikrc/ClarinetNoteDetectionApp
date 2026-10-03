@@ -19,8 +19,71 @@ const FINGERINGS = {
   71:"RT 123E|123F",72:"RT 123|123F", 73:"RT 123F#|123F",74:"RT 123|123",
   75:"RT 123|123G#",76:"RT 123|12-",  77:"RT 123|12Bb-", 78:"RT 123|1--",
   79:"RT 123|---",  80:"RT 123C#|---",81:"RT 12-|---",   82:"RT 12Eb-|---",
-  83:"RT 1--|---",  84:"RT -2-|---"
+  83:"RT 1--|---",  84:"RT -2-|---",
+  // Alt altissimo (Do♯6–Sol6), WFG Oehler/Albert temel tablosundaki birincil parmaklar:
+  // https://www.wfg.woodwind.org/clarinet/ocl_bas_3.html
+  85:"RT -23|123G#", 86:"RT -23|1-3G#", 87:"RT -23|1--G#", 88:"RT -23|---G#",
+  89:"RT -23C#|---G#", 90:"RT -2-|---G#", 91:"RT -2-|4---G#",
+  // Üst altissimo (Sol♯6–Mi♭7): bu sayfada temel tablo yok, alternatif tablosunun ilk parmağı.
+  // https://www.wfg.woodwind.org/clarinet/ocl_alt_4.html
+  92:"RT 1-3|1-3F", 93:"RT -23|---F", 94:"RT -23C#|123F", 95:"RT 12-|12-F",
+  96:"RT 1--|12Bb-F", 97:"RT 1-3|-23F", 98:"RT 1--F#|31--F", 99:"RT -2-|123"
 };
+
+// Alternatif parmaklar: [kod, ne işe yaradığı]. WFG Oehler/Albert alternatif tabloları:
+// ocl_alt_1 (chalumeau), ocl_alt_2 (klarino), ocl_alt_3 (alt altissimo), ocl_alt_4 (üst altissimo).
+// Albert'te olmayan mandalları (sol Fa ince mandalı, sol serçe Sol♯/Si♭, sağ 2. yan mandal) kullananlar alınmadı.
+const SOME = "Her modelde çıkmaz";
+const ALT_FINGERINGS = {
+  54:[["T 123E|123",""]],
+  58:[["T 123|1-3",""]],
+  63:[["T 12-|4---",""],["T 1-3|12Bb-",""],["T 1-3|1-3",""]],
+  64:[["T 123|3---",""]],
+  65:[["T -2-|---","Avusturya modelleri için; diğerlerinde tiz çıkar"],
+      ["T -23|1--","Avusturya dışı modellerde perde düzeltmesi"]],
+  67:[["---|123","Basit havalandırma parmağı"]],
+  68:[["G#---|1-3F","Basit havalandırma parmağı"]],
+  69:[["A--3|1-3F","Basit havalandırma parmağı"]],
+  70:[["R A--3E|1--F","Basit havalandırma parmağı"],["R A--3E|12Bb-F","Basit havalandırma parmağı"]],
+  71:[["T G#123E|123F",""],["RT G#123E|123F",""]],
+  72:[["T G#123|123F",""],["RT G#123|123F",""]],
+  73:[["RT 123E|123",""],["T G#123F#|123F",""],["T G#123E|123",""],
+      ["RT G#123F#|123F",""],["RT G#123E|123",""]],
+  77:[["RT 123|1-3",""]],
+  80:[["RT 123C#E|123F",""],["RT 123E|-23F","Basset horn gibi pes çalgılarda işe yarar"]],
+  81:[["RT 123C#|123F",""]],
+  82:[["RT 12-|4---",""],["RT 1-3|---",""],["RT 123C#F#|123F",""],["RT 123C#E|123",""]],
+  83:[["RT 123C#|123",""],["RT 123|4123",""]],
+  84:[["RT 1--|3---",""],["T 1-3|123G#",""],["T -23F#|123F",""],["T 123|4123G#",""],["T 123|123G#",""]],
+  85:[["RT ---|---",""],["RT 123|312-",""],["RT 123|12-",""]],
+  86:[["RT G#---|---",SOME],["RT 123|312Bb-",""],
+      ["RT 123|12Bb-","Fa5'e kaçmaması için dudak kontrolü ister"]],
+  87:[["RT AG#---|---","Bazı modellerde sol yan Sol♯ mandalına basmak gerekmez"]],
+  88:[["R 123|---G#",""],["RT 123|---G#",""],
+      ["RT AG#---|1---",SOME + "; bazı modellerde sol yan Sol♯ mandalına basmak gerekmez"]],
+  89:[["RT 123C#|123",""]],
+  90:[["RT 12-|123G#",""],["RT 123C#|12-",""],["RT 12-|1---",""],
+      ["RT -23|123G#","Do♯6'ya kaçmaması için dudak kontrolü ister"]],
+  91:[["RT -2Eb-|---G#",""],["RT 1--|123G#",""],["RT 1--|1-Bb-F",""],["RT 1-3C#|12-",""],
+      ["RT -2-|123G#","Genelde tiz çıkar; pes çalgılar ve ince kenarlı kamışlar için"],["RT 1--|1---G#",""]],
+  92:[["RT ---|123G#",""],["RT --3C#|12-",""],["RT -2Eb-|1--G#",""],["RT -2-|41--G#",""],
+      ["RT 123C#|41-3F",""],["RT -23|--3G#",""],
+      ["RT --3|1-3F","Çok daha tiz; pes çalgılar ve ince kenarlı kamışlar için"]],
+  93:[["RT -23C#|123",""],["RT -2-|1-Bb-G#",""],
+      ["RT -23|-23","Daha tiz; pes çalgılar ve ince kenarlı kamışlar için"]],
+  94:[["RT -23C#|12-G#",""],["R 123C#|123G#",""]],
+  96:[["RT 12Eb-|412Bb-F",""],["RT 1-Eb-|1-3F",""]],
+  97:[["RT 1--E|1-3F",""],["RT 1-3|123G#",""]],
+  98:[["RT -2-F#|12-F",""],["RT 1-3E|3-2Bb-F",""]]
+};
+const LOW_NOTE = 52, HIGH_NOTE = 99;   // yazılı Mi3 – Mi♭7
+
+// Notanın tüm parmakları; ilki temel parmak.
+function fingeringsFor(written){
+  if(!FINGERINGS[written]) return [];
+  return [{ code: FINGERINGS[written], note: "" },
+          ...(ALT_FINGERINGS[written] || []).map(([code, note]) => ({ code, note }))];
+}
 
 const PERDES = [
   [-53,"Kaba Rast"],[-49,"Kaba Nim Zirgüle"],[-48,"Kaba Zirgüle"],[-45,"Kaba Dik Zirgüle"],
@@ -35,7 +98,12 @@ const PERDES = [
   [35,"Nim Hisar"],[36,"Hisar"],[39,"Dik Hisar"],[40,"Hüseynî"],[44,"Acem"],
   [45,"Dik Acem"],[48,"Evç"],[49,"Mâhûr"],[52,"Dik Mâhûr"],[53,"Gerdâniye"],
   [57,"Nim Şehnâz"],[58,"Şehnâz"],[61,"Dik Şehnâz"],[62,"Muhayyer"],[66,"Sünbüle"],
-  [67,"Dik Sünbüle"],[70,"Tiz Segâh"],[71,"Tiz Bûselik"],[74,"Tiz Dik Bûselik"],[75,"Tiz Çargâh"]
+  [67,"Dik Sünbüle"],[70,"Tiz Segâh"],[71,"Tiz Bûselik"],[74,"Tiz Dik Bûselik"],[75,"Tiz Çargâh"],
+  [79,"Tiz Nim Hicaz"],[80,"Tiz Hicaz"],[83,"Tiz Dik Hicaz"],[84,"Tiz Nevâ"],[88,"Tiz Nim Hisar"],
+  [89,"Tiz Hisar"],[92,"Tiz Dik Hisar"],[93,"Tiz Hüseynî"],[97,"Tiz Acem"],[98,"Tiz Dik Acem"],
+  [101,"Tiz Evç"],[102,"Tiz Mâhûr"],[105,"Tiz Dik Mâhûr"],[106,"Tiz Gerdâniye"],
+  [110,"Tiz Nim Şehnâz"],[111,"Tiz Şehnâz"],[114,"Tiz Dik Şehnâz"],[115,"Tiz Muhayyer"],
+  [119,"Tiz Sünbüle"],[120,"Tiz Dik Sünbüle"]
 ];
 
 function setA4(hz){
@@ -77,7 +145,9 @@ function parseFingering(code){
       if(ch==="-"){ if(hole>=3) throw new Error("fazla delik: "+code); hole++; i++; continue; }
       if(ch>="1" && ch<="9"){
         const d=+ch;
-        if(hole<3 && d===hole+1){ out.holes[hand][hole]=true; hole++; i++; continue; }
+        // "1---": deliklerden önce gelen 1, arkasında hâlâ üç delik varsa 1. yan mandaldır
+        const sideFirst = hole===0 && (s.slice(i+1).match(/[-1-9]/g) || []).length >= 3;
+        if(hole<3 && d===hole+1 && !sideFirst){ out.holes[hand][hole]=true; hole++; i++; continue; }
         out.keys.push({hand, name:ch, pre:hole===0, pos:hole}); i++; continue;
       }
       let name=ch; i++;
@@ -94,7 +164,9 @@ function parseFingering(code){
 // Yalnızca Türk Sol klarnetinde kullanılan Albert sistemin (13 mandal, 2 halka) mandalları tanımlı
 // (WFG: "RT AG#12Eb3C# E F#|1341a2Bb3G# F"). Oehler'e özgü mandallar (sol Fa ince mandalı,
 // sol serçe Sol♯/Si♭, sağ 2. yan mandal) bilinçli olarak yok: kullanan bir parmak kodu hata verir.
-const KEY_TR = {"A":"La","G#":"Sol♯","F":"Fa","Eb":"Mi♭","E":"Mi","F#":"Fa♯","C#":"Do♯","Bb":"Si♭"};
+// Sol serçedeki Do♯ mandalı (WFG "C#") Türk Sol klarnetinde Sol♯ diye bilinir: aynı mandal
+// chalumeau'da Do♯, klarinoda Sol♯ verir. Kodda C# kalır, ekranda Sol♯ yazar.
+const KEY_TR = {"A":"La","G#":"Sol♯","F":"Fa","Eb":"Mi♭","E":"Mi","F#":"Fa♯","C#":"Sol♯","Bb":"Si♭"};
 function keyInfo(k){
   const tr = KEY_TR[k.name];
   if(k.hand==="lh"){
@@ -117,6 +189,42 @@ function keyInfo(k){
   const pinky = {"F":"k-F-rp","G#":"k-Gs-rp"}[k.name];
   if(k.pos===3 && pinky) return { id:pinky, group:"rp", text: tr + " mandalı" };
   return null;
+}
+
+// Parmağın şemadaki karşılığı: basılı delik ve mandal kimlikleri (sıralı).
+// Aynı parmağın farklı yazılışları aynı listeyi verir.
+function fingeringIds(code){
+  const f = parseFingering(code), ids = [];
+  if(f.R) ids.push("k-R");
+  if(f.T) ids.push("h-T");
+  f.holes.lh.forEach((v,i) => { if(v) ids.push("h-lh"+(i+1)); });
+  f.holes.rh.forEach((v,i) => { if(v) ids.push("h-rh"+(i+1)); });
+  for(const k of f.keys){
+    const info = keyInfo(k);
+    if(!info) throw new Error("bilinmeyen mandal: " + k.hand + " " + k.name + " (" + code + ")");
+    ids.push(info.id);
+  }
+  return ids.sort();
+}
+
+// Şemada basılı delik/mandal kümesinden notayı bulur: { written, index, also } ya da null.
+// Aynı parmak birden çok notada geçiyorsa (ör. Mi5 = Do♯6 alternatifi, dudakla ayrılır)
+// temel parmak alternatife, sonra pes nota tize üstün gelir; diğerleri `also` listesinde.
+let fingerIndex = null;
+function findFingering(ids){
+  if(!fingerIndex){
+    fingerIndex = new Map();
+    for(const basic of [true, false])
+      for(let w=LOW_NOTE; w<=HIGH_NOTE; w++)
+        fingeringsFor(w).forEach((f, i) => {
+          if((i===0) !== basic) return;
+          const key = fingeringIds(f.code).join(" ");
+          if(!fingerIndex.has(key)) fingerIndex.set(key, []);
+          fingerIndex.get(key).push({ written: w, index: i });
+        });
+  }
+  const hits = fingerIndex.get([...ids].sort().join(" "));
+  return hits ? { ...hits[0], also: hits.slice(1) } : null;
 }
 
 // Parmak kodunu adım adım okunur Türkçe talimata çevirir.
@@ -162,15 +270,16 @@ function analyze(freq, transpose){
     soundingName: noteName(written-transpose),
     perde: nearestPerde(comma),
     fingering: FINGERINGS[written] || null,
-    register: written<=70 ? "Chalumeau" : "Klarino",
-    inRange: written>=52 && written<=84
+    fingerings: fingeringsFor(written),
+    register: written<=70 ? "Chalumeau" : written<=84 ? "Klarino" : "Altissimo",
+    inRange: written>=LOW_NOTE && written<=HIGH_NOTE
   };
 }
 
 // Hassasiyet 1 (en az) – 10 (en çok) → sessizlik eşiği (RMS).
 function sensitivityToRms(s){ return 0.03 * Math.pow(0.002/0.03, (s-1)/9); }
 
-function detectPitch(buf, sampleRate, minHz=100, maxHz=950, minRms=0.008){
+function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008){
   const n = buf.length;
   let sum=0; for(let i=0;i<n;i++) sum+=buf[i]*buf[i];
   const rms = Math.sqrt(sum/n);
@@ -214,7 +323,7 @@ class NoteStabilizer{
 function noteKey(r){ return r.written + ":" + (r.perde ? r.perde.comma : "-"); }
 
 if(typeof module !== "undefined") module.exports = {
-  SOL_TRANSPOSE, FINGERINGS, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName,
-  nearestPerde, perdeFreq, parseFingering, keyInfo, describeFingering, analyze,
+  SOL_TRANSPOSE, FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName,
+  nearestPerde, perdeFreq, parseFingering, keyInfo, fingeringIds, findFingering, describeFingering, analyze,
   sensitivityToRms, detectPitch, NoteStabilizer, noteKey
 };
