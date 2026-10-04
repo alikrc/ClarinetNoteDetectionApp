@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#1C5B59">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<script src="i18n.js"></script>
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%E2%99%AF%E2%99%AD&display=swap">
@@ -344,6 +345,21 @@
       <label class="label" for="sens">Hassasiyet</label>
       <input type="range" id="sens" min="1" max="10" step="1" value="5">
     </div>
+    <div class="field">
+      <span class="label" id="themelab">Tema</span>
+      <div class="seg" role="radiogroup" aria-labelledby="themelab" id="themeseg">
+        <button type="button" role="radio" data-theme="auto">Otomatik</button>
+        <button type="button" role="radio" data-theme="light">Açık</button>
+        <button type="button" role="radio" data-theme="dark">Koyu</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" id="langlab">Dil</span>
+      <div class="seg" role="radiogroup" aria-labelledby="langlab" id="langseg">
+        <button type="button" role="radio" data-lang="tr" lang="tr">TR</button>
+        <button type="button" role="radio" data-lang="en" lang="en">EN</button>
+      </div>
+    </div>
     <div class="field grow">
       <span class="label">Mikrofon seviyesi</span>
       <div class="level" title="Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir">
@@ -573,7 +589,7 @@
   $("a4dn").addEventListener("click", () => applyA4(settings.a4 - 0.5));
   $("a4up").addEventListener("click", () => applyA4(settings.a4 + 0.5));
 
-  const segBtns = document.querySelectorAll(".seg button");
+  const segBtns = document.querySelectorAll(".seg [data-mode]");
   function applyMode(m){
     settings.mode = m; store.set("mode", m);
     segBtns.forEach(b => b.setAttribute("aria-checked", b.dataset.mode===m ? "true" : "false"));
@@ -581,6 +597,19 @@
     if(lastShown) show(lastShown);
   }
   segBtns.forEach(b => b.addEventListener("click", () => applyMode(b.dataset.mode)));
+
+  // Tema anında değişir (i18n.js); dil değişince sayfa yeniden yüklenir
+  const themeBtns = document.querySelectorAll("#themeseg button"), langBtns = document.querySelectorAll("#langseg button");
+  function markSeg(btns, key, v){ btns.forEach(b => b.setAttribute("aria-checked", b.dataset[key]===v ? "true" : "false")); }
+  markSeg(themeBtns, "theme", store.get("theme", "auto"));
+  markSeg(langBtns, "lang", LANG);
+  themeBtns.forEach(b => b.addEventListener("click", () => {
+    store.set("theme", b.dataset.theme); applyTheme(b.dataset.theme); markSeg(themeBtns, "theme", b.dataset.theme); drawTrace();
+  }));
+  langBtns.forEach(b => b.addEventListener("click", () => {
+    if(b.dataset.lang === LANG) return;
+    store.set("lang", b.dataset.lang); location.reload();
+  }));
 
   // Seviye çubuğu -60…0 dBFS
   const dbPos = rms => Math.max(0, Math.min(100, (20*Math.log10(Math.max(rms,1e-6)) + 60) / 60 * 100));
@@ -781,8 +810,10 @@
         ? fmtKoma(r.perde.delta) + " koma sapma"
         : "bu kaba bölge için AEU perde adı yok";
     }
-    writtenEl.innerHTML = r.writtenName.tr + " <em>" + r.writtenName.en + "</em>";
-    soundEl.innerHTML  = r.soundingName.tr + " <em>" + r.soundingName.en + "</em>";
+    // Türkçede yanına uluslararası adı (G4) yazılır; İngilizcede tek ad yeter
+    const both = n => LANG === "en" ? n.en : n.tr + " <em>" + n.en + "</em>";
+    writtenEl.innerHTML = both(r.writtenName);
+    soundEl.innerHTML  = both(r.soundingName);
     hzEl.innerHTML     = tr1(r.freq) + " <em>Hz</em>";
 
     if(komaMode){

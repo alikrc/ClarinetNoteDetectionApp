@@ -5,7 +5,7 @@
   if(!SK) return;
   const $ = id => document.getElementById(id);
   const store = SK.store, T = SOL_TRANSPOSE;
-  const nn = w => noteName(w).tr;
+  const nn = w => LANG === "en" ? noteName(w).en : noteName(w).tr;
   const num = (v, d=1) => v.toFixed(d).replace(".", ",");
   const sgn = (v, d=1) => { const r = Math.round(v*10**d)/10**d; return (r>0 ? "+" : r<0 ? "−" : "±") + num(Math.abs(r), d); };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -717,7 +717,7 @@
         $("pcmsg").textContent = errors.length ? "Okunamadı: " + errors.join(" ") : bad.length ? "Aralık dışı: " + bad.map(nn).join(" ") + " (Mi3–Mi♭7)" : "Nota yok.";
         return;
       }
-      user.push({ name: $("pcname").value.trim() || "Ezgim " + (user.length+1), notes });
+      user.push({ name: $("pcname").value.trim() || _t("Ezgim " + (user.length+1)), notes });
       store.set("piece.user", user);
       fillSel("u" + (user.length-1)); store.set("piece.sel", $("pcsel").value); load();
       $("pcmsg").textContent = notes.length + " nota kaydedildi.";
@@ -725,7 +725,7 @@
     $("pcdel").addEventListener("click", () => {
       const k = $("pcsel").value;
       if(!k.startsWith("u")){ $("pcmsg").textContent = "Yalnızca ★ işaretli kendi ezgilerin silinir."; return; }
-      if(!confirm("Bu ezgi silinsin mi?")) return;
+      if(!confirm(_t("Bu ezgi silinsin mi?"))) return;
       user.splice(+k.slice(1), 1); store.set("piece.user", user); fillSel(); load();
     });
     // Kayıt sekmesinden gelen notalar
@@ -824,7 +824,7 @@
         $("rcpiece").addEventListener("click", () => {
           const inRange = notes.map(n => n.written).filter(w => w >= LOW_NOTE && w <= HIGH_NOTE);
           if(!inRange.length){ $("rcmsg").textContent = "Eklenecek nota yok."; return; }
-          SK.addPiece("Kayıt " + new Date().toLocaleTimeString("tr", { hour:"2-digit", minute:"2-digit" }), inRange);
+          SK.addPiece(_t("Kayıt " + new Date().toLocaleTimeString("tr", { hour:"2-digit", minute:"2-digit" })), inRange);
           $("rcmsg").textContent = "Eser takibine eklendi (★).";
         });
       };
@@ -890,12 +890,12 @@
         <button class="stopbtn" id="rsall" type="button">Tüm ilerlemeyi sıfırla</button></div>
         <div class="muted small">Tüm veriler yalnızca bu cihazda, tarayıcıda saklanır.</div>`;
       $("rsint").addEventListener("click", () => {
-        if(!confirm("Entonasyon istatistiği silinsin mi?")) return;
+        if(!confirm(_t("Entonasyon istatistiği silinsin mi?"))) return;
         for(const k in intStats) delete intStats[k];
         store.set("int.stats", intStats); paintHeat(); render();
       });
       $("rsall").addEventListener("click", () => {
-        if(!confirm("Seri, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır.")) return;
+        if(!confirm(_t("Seri, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır."))) return;
         ["quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","makam.done","mimic.best","piece.done","days","int.stats"]
           .forEach(k => { try{ localStorage.removeItem("sk." + k); }catch(e){} });
         resetting = true;

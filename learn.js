@@ -251,12 +251,13 @@ function makeMotif(scale, len, rng = Math.random){
 }
 
 // ---- Eser takibi ----
-// "Sol4 La4 Si♭4 Do5" gibi yazılı nota listesini MIDI numaralarına çevirir.
-const LETTER_PC = { do:0, re:2, mi:4, fa:5, sol:7, la:9, si:11 };
+// "Sol4 La4 Si♭4 Do5" (ya da İngilizce "G4 A4 B♭4 C5") gibi yazılı nota listesini MIDI numaralarına çevirir.
+const LETTER_PC = { do:0, re:2, mi:4, fa:5, sol:7, la:9, si:11, c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
 function parseMelody(text){
   const notes = [], errors = [];
   for(const tok of text.split(/[\s,;|]+/).filter(Boolean)){
-    const m = /^(do|re|mi|fa|sol|la|si)([♯#]|[♭b])?(\d)$/i.exec(tok.toLocaleLowerCase("tr").replace("ı","i"));
+    const low = tok.toLocaleLowerCase("tr").replace("ı","i");
+    const m = /^(do|re|mi|fa|sol|la|si)([♯#]|[♭b])?(\d)$/.exec(low) || /^([a-g])([♯#]|[♭b])?(\d)$/.exec(low);
     if(!m){ errors.push(tok); continue; }
     const acc = !m[2] ? 0 : /[♯#]/.test(m[2]) ? 1 : -1;
     notes.push(LETTER_PC[m[1]] + acc + (+m[3] + 1) * 12);

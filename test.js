@@ -306,6 +306,8 @@ let motifOk = true; for(let i=0;i<50;i++){ const m=L.makeMotif(scale, 6); if(m.l
 ok(motifOk, 'motif dizinin perdelerinden, ayni nota art arda yok');
 const pm = L.parseMelody('Sol4 La4 Si♭4 do5, Fa#5 Mib4 xx');
 ok(pm.notes.join(',')==='67,69,70,72,78,63' && pm.errors.join()==='xx', 'yazili nota adlari MIDIye ceviriliyor', pm.notes.join(','));
+const pe = L.parseMelody('G4 A4 Bb4 B♭4 C5 F#5 Eb4 b4');
+ok(pe.notes.join(',')==='67,69,70,70,72,78,63,71' && !pe.errors.length, 'Ingilizce nota adlari da okunuyor', pe.notes.join(','));
 const exs = L.makamExercises(rast);
 ok(exs.length===2 && exs[0].notes[0]===67 && exs[0].notes[7]===79 && exs[0].notes[exs[0].notes.length-1]===67 && exs[0].notes.length===15, 'Rast cikis-inis: Sol4…Sol5…Sol4');
 
@@ -321,7 +323,9 @@ console.log('\n[21] Calisma bolumu arayuzu');
 ok(html.includes('<script src="learn.js">') && html.includes('<script src="practice.js">') && html.includes('id="practice"'), 'learn.js ve practice.js yukleniyor, calisma bolumu var');
 ok(['vib','heatbtn','heatlg'].every(id => html.includes('id="'+id+'"')), 'vibrato, isi haritasi dugmesi ve aciklamasi var');
 const sw = fs.readFileSync(require('path').join(__dirname,'sw.js'),'utf8');
-ok(sw.includes('"learn.js"') && sw.includes('"practice.js"'), 'yeni dosyalar cevrimdisi onbellekte');
+ok(sw.includes('"learn.js"') && sw.includes('"practice.js"') && sw.includes('"i18n.js"'), 'yeni dosyalar cevrimdisi onbellekte');
+ok(/<head>[\s\S]*<script src="i18n.js"><\/script>[\s\S]*<\/head>/.test(html), 'tema ve dil, sayfa cizilmeden <head> icinde yukleniyor');
+ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.includes('.seg [data-mode]'), 'tema ve dil secicileri var, gosterge secimi onlara karismiyor');
 
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);

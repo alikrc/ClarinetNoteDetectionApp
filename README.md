@@ -33,7 +33,8 @@ Mikrofondan çalınan sesi dinler ve şunları gösterir:
 Tüm çalışma verileri yalnızca tarayıcıda (cihazda) saklanır.
 
 Ayarlar (tarayıcıda saklanır): diyapazon (La = 430–450 Hz), gösterge ölçeği (koma / sent),
-mikrofon hassasiyeti ve seviye çubuğu.
+mikrofon hassasiyeti ve seviye çubuğu, tema (otomatik / açık / koyu) ve dil (Türkçe / İngilizce).
+İngilizcede makam ve perde adları Türkçe kalır, yazılı nota adları uluslararası gösterime (G4) döner.
 
 ## Çalıştırma
 
@@ -70,6 +71,7 @@ mandalın `index.html`'de çizili olduğunu doğrular. GitHub Actions her push't
 |---|---|
 | `index.html` | Arayüz, parmak şeması (SVG), mikrofon döngüsü |
 | `core.js` | Perde/nota hesabı, parmak kodu çözümleme, perde bulucu (tarayıcı + Node) |
+| `i18n.js` | Tema ve dil; İngilizce çeviri sözlüğü (yeni bir metin eklenince buraya da eklenmeli) |
 | `learn.js` | Çalışma bölümünün mantığı: makam ve usul verisi, test, puanlama, istatistik (tarayıcı + Node) |
 | `practice.js` | Çalışma bölümünün arayüzü; `index.html`'deki `window.SK` üzerinden mikrofon ve sese bağlanır |
 | `sw.js`, `manifest.webmanifest`, `icon.svg` | Çevrimdışı kullanım ve ana ekrana ekleme |
