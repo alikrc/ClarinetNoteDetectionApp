@@ -14,7 +14,7 @@ Bu beş madde alan adı kararından bağımsız; web sürümünü de iyileştiri
 
 ## Altyapı: alan adı
 
-Android uygulamasının (TWA) adres çubuğunu gizleyebilmesi için alan adının **kök dizininde** `/.well-known/assetlinks.json` doğrulama dosyası olmalı. `alikrc.github.io/SolKlarnet/` gibi bir alt dizin adresinde bu dosya konamaz.
+Android uygulamasının (TWA) adres çubuğunu gizleyebilmesi için alan adının **kök dizininde** `/.well-known/assetlinks.json` doğrulama dosyası olmalı. `alikrc.github.io/Sol-Klarnet/` gibi bir alt dizin adresinde bu dosya konamaz.
 
 - [ ] **Alan adı kararı:** Kendi alan adı (ör. `solklarnet.com`, yıllık birkaç yüz lira, önerilen) ya da ücretsiz `alikrc.github.io` kullanıcı sitesi deposu.
 - [ ] **GitHub Pages'i aç:** Settings → Pages → Deploy from a branch → `main` / root; alan adı seçildiyse ona bağla.
