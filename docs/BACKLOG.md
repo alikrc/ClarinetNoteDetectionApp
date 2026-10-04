@@ -1,4 +1,4 @@
-# Sol Klarnet Dinleyici — Backlog
+# Sol Klarnet — Backlog
 
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/f9c1b6aa-5fdc-475c-914d-1701a7b8a2b9)
 

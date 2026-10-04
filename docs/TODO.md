@@ -1,4 +1,4 @@
-# Sol Klarnet Dinleyici — Mobil ve Android TODO
+# Sol Klarnet — Mobil ve Android TODO
 
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/a46a8d96-6742-46c6-b1f0-edf82ee6e1c2)
 
@@ -14,7 +14,7 @@ Bu beş madde alan adı kararından bağımsız; web sürümünü de iyileştiri
 
 ## Altyapı: alan adı
 
-Android uygulamasının (TWA) adres çubuğunu gizleyebilmesi için alan adının **kök dizininde** `/.well-known/assetlinks.json` doğrulama dosyası olmalı. `alikrc.github.io/ClarinetNoteDetectionApp/` gibi bir alt dizin adresinde bu dosya konamaz.
+Android uygulamasının (TWA) adres çubuğunu gizleyebilmesi için alan adının **kök dizininde** `/.well-known/assetlinks.json` doğrulama dosyası olmalı. `alikrc.github.io/SolKlarnet/` gibi bir alt dizin adresinde bu dosya konamaz.
 
 - [ ] **Alan adı kararı:** Kendi alan adı (ör. `solklarnet.com`, yıllık birkaç yüz lira, önerilen) ya da ücretsiz `alikrc.github.io` kullanıcı sitesi deposu.
 - [ ] **GitHub Pages'i aç:** Settings → Pages → Deploy from a branch → `main` / root; alan adı seçildiyse ona bağla.

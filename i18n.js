@@ -25,7 +25,8 @@ const FINGER_EN = { "işaret":"index", "orta":"middle", "yüzük":"ring" };
 
 const EXACT = {
   // Başlık ve ayarlar
-  "Sol Klarnet Dinleyici": "G Clarinet Listener",
+  "Sol Klarnet — Akort, Parmak, Makam": "Turkish G Clarinet — Tuner, Fingerings, Makam",
+  "Sol Klarnet": "Turkish G Clarinet",
   "Türk Sol klarneti · Albert sistem · AEU 53 koma": "Turkish G clarinet · Albert system · AEU 53-comma tuning",
   "Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol).":
     "Listens to your playing through the microphone and shows the perde (pitch degree), how many commas you are off, the written and sounding note, and the fingering for that note. The written note is a perfect fourth above the sounding pitch (Rast = written G).",
@@ -276,7 +277,7 @@ function translate(text){
 function _t(s){ return LANG === "en" ? translate(s) : s; }
 
 if(LANG === "en"){
-  document.title = EXACT["Sol Klarnet Dinleyici"];
+  document.title = EXACT["Sol Klarnet — Akort, Parmak, Makam"];
   const ATTRS = ["aria-label", "title", "placeholder"];
   const doText = n => { if(n.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)) return; const t = translate(n.data); if(t !== n.data) n.data = t; };
   const doAttrs = el => { for(const a of ATTRS){ const v = el.getAttribute && el.getAttribute(a); if(v){ const t = translate(v); if(t !== v) el.setAttribute(a, t); } } };

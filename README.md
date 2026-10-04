@@ -1,6 +1,7 @@
-# Sol Klarnet Dinleyici
+# Sol Klarnet — Akort, Parmak, Makam
 
-Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için tarayıcıda çalışan akort ve parmak pozisyonu aracı.
+Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için tarayıcıda çalışan akort, parmak pozisyonu ve
+makam alıştırma uygulaması.
 Mikrofondan çalınan sesi dinler ve şunları gösterir:
 
 - **AEU perdesi** (53 koma sistemi, Rast = yazılı Sol) ve perdeden **kaç koma** saptığı

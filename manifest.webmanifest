@@ -1,7 +1,7 @@
 {
-  "name": "Sol Klarnet Dinleyici",
+  "name": "Sol Klarnet — Akort, Parmak, Makam",
   "short_name": "Sol Klarnet",
-  "description": "Sol klarnet için perde, koma sapması ve Albert sistem parmak pozisyonu gösteren akort aracı.",
+  "description": "Türk Sol klarneti için akort, Albert sistem parmak pozisyonları ve makam alıştırmaları.",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",

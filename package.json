@@ -1,8 +1,8 @@
 {
-  "name": "clarinet-note-detection-app",
+  "name": "sol-klarnet",
   "version": "1.0.0",
   "private": true,
-  "description": "Sol klarnet için mikrofonla perde ve parmak pozisyonu gösteren akort aracı",
+  "description": "Türk Sol klarneti için akort, parmak pozisyonu ve makam alıştırmaları",
   "scripts": {
     "test": "node test.js",
     "start": "npx --yes http-server -c-1 -p 8080 ."
