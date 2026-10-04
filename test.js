@@ -229,5 +229,99 @@ let maxStep=-99, minStep=99;
 for(let w=LOW_NOTE; w<=HIGH_NOTE; w++){ const s=staffPos(w).step; maxStep=Math.max(maxStep,s); minStep=Math.min(minStep,s); }
 ok(minStep===-7 && maxStep===16, 'tum aralik -7…16 adim icinde (sabit yukseklikli dizek)', minStep+'…'+maxStep);
 
+const L = require('./learn.js');
+const { PERDES } = require('./core.js');
+
+console.log('\n[14] Makam dizileri');
+const perdeSet = new Set(PERDES.map(p=>p[0]));
+let mkErr = [];
+for(const mk of L.MAKAMS){
+  for(const c of [...mk.asc, ...mk.desc, mk.durak, mk.guclu, mk.yeden]) if(!perdeSet.has(c)) mkErr.push(mk.name+' '+c);
+  for(const list of [mk.asc, mk.desc]){
+    if(list.length!==8) mkErr.push(mk.name+' 8 perde degil');
+    for(let i=1;i<list.length;i++) if(list[i]<=list[i-1]) mkErr.push(mk.name+' sirasiz');
+  }
+  if(mk.asc[0]!==mk.durak || mk.desc[0]!==mk.durak) mkErr.push(mk.name+' durakla baslamiyor');
+  if(![...mk.asc, ...mk.desc].includes(mk.guclu)) mkErr.push(mk.name+' guclu dizide yok');
+  for(const c of [...mk.asc, ...mk.desc]){ const w=L.commaToWritten(c); if(w<LOW_NOTE||w>HIGH_NOTE) mkErr.push(mk.name+' aralik disi '+c); }
+}
+ok(L.MAKAMS.length===9 && mkErr.length===0, '9 makamin her perdesi AEU tablosunda, sirali, durakla basliyor, calinabilir aralikta', mkErr.join(' | '));
+const rast = L.makamById('rast');
+ok(rast.asc[6]===48 && rast.desc[6]===44, 'Rast: cikarken Evc, inerken Acem');
+ok(L.perdeName(17)==='Segâh' && L.commaToWritten(17)===71 && L.commaToWritten(9)===69 && L.commaToWritten(14)===70, 'koma -> perde adi ve yazili nota (Segâh = Si4, Dügâh = La4)');
+const jSeg = L.judgePerde(18.1, 17, L.makamById('ussak').asc);
+ok(!jSeg.ok || jSeg.other==='Bûselik', 'Uşşak: Segâh yerine Bûselik calininca uyarir', JSON.stringify(jSeg));
+ok(L.judgePerde(17.4, 17, rast.asc).ok && !L.judgePerde(19, 17, rast.asc).ok, '±1 koma icinde temiz sayilir');
+
+console.log('\n[15] Usuller');
+ok(L.USULS.every(u => L.usulSlots(u).length === +u.meter.split('/')[0]), 'her usulun vurus toplami olcu sayisina esit');
+ok(L.usulSlots(L.USULS.find(u=>u.id==='sofyan')).join(',')==='D,,T,T', 'Sofyan = Düm . Tek Tek');
+
+console.log('\n[16] Parmak ezberi testi');
+const qs = {};
+L.quizRecord(qs, 60, false, 5000); L.quizRecord(qs, 60, false, 5000); L.quizRecord(qs, 62, true, 900); L.quizRecord(qs, 62, true, 900);
+ok(L.quizWeight(qs[60]) > L.quizWeight(qs[62]) && L.quizWeight(undefined) > L.quizWeight(qs[62]), 'yanlis/yavas notalar daha agir, dogrular hafif');
+let seq=0.0; const rng = () => (seq = (seq*9301+49297)%233280)/233280;
+const counts = {}; for(let i=0;i<3000;i++){ const w=L.quizPick([L.LEVELS[0]], qs, rng); counts[w]=(counts[w]||0)+1; }
+ok(Object.keys(counts).every(w=>w>=52&&w<=70) && counts[60] > counts[62]*3, 'secim bolge icinde ve zor nota daha sik soruluyor', counts[60]+' / '+counts[62]);
+let rep = 0; for(let i=0;i<200;i++) if(L.quizPick([{lo:60,hi:61}], {}, Math.random, 60)===60) rep++;
+ok(rep===0, 'ayni nota art arda sorulmuyor');
+ok(L.compareNote(67,67)==='ok' && L.compareNote(67,79)==='octave' && L.compareNote(67,68)==='wrong', 'dogru / oktav hatasi / yanlis');
+ok(L.unlockedLevels({})===1 && L.unlockedLevels({chalumeau:Array(20).fill(true)})===2 &&
+   L.unlockedLevels({chalumeau:[...Array(16).fill(true),...Array(4).fill(false)], klarino:Array(20).fill(true)})===3 &&
+   L.unlockedLevels({chalumeau:[...Array(14).fill(true),...Array(6).fill(false)]})===1, 'son 20 cevabin %80i dogruysa sonraki bolge acilir');
+const ch = L.quizChoices(60, L.LEVELS[0]);
+ok(ch.length===4 && ch.includes(60) && new Set(ch).size===4 && ch.every(w=>w>=52&&w<=70), 'Bul modu: 4 farkli secenek, dogrusu dahil');
+
+console.log('\n[17] Uzun ton ve entonasyon istatistigi');
+const steady = L.longToneScore(Array(100).fill(0.1), 8000, 8000), wobbly = L.longToneScore(Array.from({length:100},(_,i)=>i%2?1.2:-0.8), 8000, 8000);
+ok(steady.score>=95 && wobbly.score<steady.score-30, 'sabit ses yuksek, dalgali ses dusuk puan', steady.score+' / '+wobbly.score);
+ok(L.longToneScore(Array(50).fill(0), 4000, 8000).score===88, 'surenin yarisi: tamamlama puaninin yarisi');
+const commits=[]; const col = new L.NoteStatCollector((w,m,d)=>commits.push([w,m,d]));
+col.push(67,1,0); col.push(67,1.2,200); col.push(67,0.8,400); col.push(69,0,450); col.push(69,0,500); col.push(67,0.5,600); col.flush();
+ok(commits.length===1 && commits[0][0]===67 && Math.abs(commits[0][1]-1)<1e-9, '0,3 sn altindaki gecis notalari sayilmiyor');
+const ist = {}; [0.9,0.7,0.8].forEach(m=>L.statAdd(ist,67,m)); L.statAdd(ist,69,-1); L.statAdd(ist,69,-1);
+ok(L.heatClass(ist[67])==='sharp' && L.heatClass(ist[69])===null && L.heatClass({n:3,sum:-2,sumSq:0})==='flat' && L.heatClass({n:3,sum:0.3,sumSq:0})==='clean', 'isi haritasi: tiz / pes / temiz, en az 3 olcum');
+
+console.log('\n[18] Nota bolutleme, vibrato, glissando');
+const fr = []; for(let t=0;t<500;t+=45) fr.push({t, written:67, comma:0.2}); fr.push({t:520, written:null});
+for(let t=600;t<660;t+=45) fr.push({t, written:72, comma:22}); for(let t=700;t<1100;t+=45) fr.push({t, written:69, comma:9});
+const seg = L.segmentNotes(fr, 120);
+ok(seg.length===2 && seg[0].written===67 && seg[1].written===69 && Math.abs(seg[0].comma-0.2)<1e-9, 'kisa notalar atiliyor, sessizlik bolutu ayiriyor');
+const vf = []; for(let t=0;t<1500;t+=45) vf.push({t, comma: 31 + 0.5*Math.sin(2*Math.PI*5.5*t/1000)});
+const vb = L.vibrato(vf);
+ok(vb && Math.abs(vb.rate-5.5)<0.8 && Math.abs(vb.depth-0.5)<0.15, 'vibrato 5,5 Hz ±0,5 koma bulunuyor', vb && (vb.rate.toFixed(2)+' Hz ±'+vb.depth.toFixed(2)));
+const flatF = vf.map(f=>({t:f.t, comma:31+0.02*Math.random()}));
+ok(L.vibrato(flatF)===null, 'duz seste vibrato yok');
+const smooth = vf.map(f=>({t:f.t, comma:31 + 0.5*0.68*Math.sin(2*Math.PI*5.5*f.t/1000)}));   // 85 ms pencerenin yumusattigi
+const vbw = L.vibrato(smooth, 4096/48000);
+ok(vbw && Math.abs(vbw.depth-0.5)<0.12, 'olcum penceresinin yumusattigi derinlik duzeltiliyor', vbw && vbw.depth.toFixed(2));
+const gl = []; for(let i=0;i<8;i++) gl.push({t:i*45, comma:9+i*3});
+const jump = [{t:0,comma:9},{t:45,comma:9.2},{t:90,comma:31}];
+ok(L.isGlide(gl) && !L.isGlide(jump.slice(0,2)) && !L.isGlide([{t:0,comma:9},{t:40,comma:20},{t:60,comma:31}]), 'surekli kayis glissando, ani atlama degil');
+
+console.log('\n[19] Taklit ve eser takibi');
+const scale = L.makamById('hicaz').asc;
+let motifOk = true; for(let i=0;i<50;i++){ const m=L.makeMotif(scale, 6); if(m.length!==6 || !m.every(c=>scale.includes(c)) || m.some((c,k)=>k&&c===m[k-1])) motifOk=false; }
+ok(motifOk, 'motif dizinin perdelerinden, ayni nota art arda yok');
+const pm = L.parseMelody('Sol4 La4 Si♭4 do5, Fa#5 Mib4 xx');
+ok(pm.notes.join(',')==='67,69,70,72,78,63' && pm.errors.join()==='xx', 'yazili nota adlari MIDIye ceviriliyor', pm.notes.join(','));
+const exs = L.makamExercises(rast);
+ok(exs.length===2 && exs[0].notes[0]===67 && exs[0].notes[7]===79 && exs[0].notes[exs[0].notes.length-1]===67 && exs[0].notes.length===15, 'Rast cikis-inis: Sol4…Sol5…Sol4');
+
+console.log('\n[20] Ilerleme');
+const today = new Date(2026, 9, 4);
+const dk = d => L.dayKey(new Date(2026, 9, d));
+ok(L.dayKey(today)==='2026-10-04', 'gun anahtari');
+ok(L.streak({[dk(4)]:120,[dk(3)]:90,[dk(2)]:61,[dk(1)]:10}, today)===3, 'art arda 3 gun (1 dakikanin altindaki gun sayilmaz)');
+ok(L.streak({[dk(3)]:90,[dk(2)]:90}, today)===2, 'bugun henuz calismadiysan seri dunden sayilir');
+ok(L.streak({}, today)===0, 'bos seri');
+
+console.log('\n[21] Calisma bolumu arayuzu');
+ok(html.includes('<script src="learn.js">') && html.includes('<script src="practice.js">') && html.includes('id="practice"'), 'learn.js ve practice.js yukleniyor, calisma bolumu var');
+ok(['vib','heatbtn','heatlg'].every(id => html.includes('id="'+id+'"')), 'vibrato, isi haritasi dugmesi ve aciklamasi var');
+const sw = fs.readFileSync(require('path').join(__dirname,'sw.js'),'utf8');
+ok(sw.includes('"learn.js"') && sw.includes('"practice.js"'), 'yeni dosyalar cevrimdisi onbellekte');
+
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);

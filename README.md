@@ -13,6 +13,24 @@ Mikrofondan çalınan sesi dinler ve şunları gösterir:
   bir kez bas çalsın, tekrar bas dursun)
 - **Klarnetten çal**: şemadaki deliklere ve mandallara dokunarak parmak kur; parmak tablodaki bir
   notaya (temel ya da alternatif) uyunca o nota gösterilir ve çalar
+- **Vibrato** hızı ve derinliği; entonasyon izinde **glissando** işaretleri
+- **Entonasyon haritası**: nota şeridinde her notayı ortalamada tiz, pes ya da temiz çaldığını gösterir
+
+### Çalışma bölümü
+
+- **Parmak testi**: "Çal" (istenen notayı çal) ve "Bul" (şemadaki parmak hangi nota) modları; zorlanılan
+  notalar daha sık sorulur, bir bölgede son 20 cevabın %80'i doğruysa sonraki bölge açılır
+- **Uzun ton**: notayı hedef süre boyunca tut; sapma, yayılım ve 0–100 puan, nota başına rekor
+- **Makam**: Rast, Uşşak, Hüseynî, Hicaz, Hüzzam, Segâh, Saba, Kürdî, Nihâvend; dizi nota şeridinde
+  işaretlenir, çıkış-iniş alıştırmasında her perdenin koma sapması ve dizi dışı perdeye kayma uyarısı
+- **Taklit**: makam dizisinden kısa ezgi çalar, aynısını çalınca ezgi uzar
+- **Eser takibi**: notalar sırayla gelir, doğru nota çalınınca ilerler; makam alıştırmaları hazır, kendi
+  ezgini yazılı nota adlarıyla ekleyebilirsin
+- **Kayıt**: çaldığını kaydeder, dinletirken çalınan notaları koma sapmasıyla listeler
+- **İlerleme**: günlük çalma süresi, seri, test/uzun ton/makam sonuçları
+- **Usullü metronom** (Semâî, Sofyan, Düyek, Aksak, Ağır Aksak, Curcuna) ve **durak sesi (dron)**
+
+Tüm çalışma verileri yalnızca tarayıcıda (cihazda) saklanır.
 
 Ayarlar (tarayıcıda saklanır): diyapazon (La = 430–450 Hz), gösterge ölçeği (koma / sent),
 mikrofon hassasiyeti ve seviye çubuğu.
@@ -42,8 +60,9 @@ npm test
 ```
 
 Testler `core.js` içindeki mantığı (perde bulucu, koma eşlemesi, parmak kodları, talimatlar,
-diyapazon, hassasiyet, titreme önleyici) ve parmak şemasındaki her mandalın `index.html`'de
-çizili olduğunu doğrular. GitHub Actions her push'ta testleri çalıştırır.
+diyapazon, hassasiyet, titreme önleyici), `learn.js` içindeki çalışma mantığını (makam dizileri, usuller,
+test soru seçimi, uzun ton puanı, nota bölütleme, vibrato/glissando, seri) ve parmak şemasındaki her
+mandalın `index.html`'de çizili olduğunu doğrular. GitHub Actions her push'ta testleri çalıştırır.
 
 ## Dosyalar
 
@@ -51,6 +70,8 @@ diyapazon, hassasiyet, titreme önleyici) ve parmak şemasındaki her mandalın 
 |---|---|
 | `index.html` | Arayüz, parmak şeması (SVG), mikrofon döngüsü |
 | `core.js` | Perde/nota hesabı, parmak kodu çözümleme, perde bulucu (tarayıcı + Node) |
+| `learn.js` | Çalışma bölümünün mantığı: makam ve usul verisi, test, puanlama, istatistik (tarayıcı + Node) |
+| `practice.js` | Çalışma bölümünün arayüzü; `index.html`'deki `window.SK` üzerinden mikrofon ve sese bağlanır |
 | `sw.js`, `manifest.webmanifest`, `icon.svg` | Çevrimdışı kullanım ve ana ekrana ekleme |
 | `test.js` | Testler |
 

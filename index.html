@@ -36,6 +36,7 @@
     --wood:#2B2420; --wood-edge:#4A3F39; --metal:#56625F; --metal-edge:#8A9896; --key-ink:#EEF3F1;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}   /* display:flex verilen öğeler de gizlenebilsin */
   body{background:var(--paper);color:var(--ink);font-family:var(--ui);margin:0}
   .page{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:28px 40px}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -200,6 +201,110 @@
     border-radius:5px;padding:3px 5px;min-width:20px;text-align:center}
   .note.on .pn,.note.on .kk{color:var(--surface);border-color:rgba(255,255,255,.45)}
 
+
+  /* ---- Çalışma bölümü ---- */
+  .practice{margin-top:18px}
+  .phead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  @media(max-width:700px){.tools{grid-template-columns:1fr}}
+  .tool{background:var(--sunk);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .trow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  select,input[type=text],input[type=number],textarea{font:500 13px var(--ui);background:var(--surface);color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:6px 8px;max-width:100%}
+  textarea{width:100%;font-family:var(--mono);margin:6px 0}
+  .tnum{display:inline-flex;align-items:center;gap:4px;font-size:12px}
+  .tnum input{width:64px}
+  .tnum em{font-style:normal;color:var(--muted)}
+  #dronevol{width:90px}
+  .slots{display:flex;flex-wrap:wrap;gap:3px}
+  .slots i{font:600 10px/1 var(--ui);font-style:normal;padding:6px 6px;border-radius:6px;background:var(--surface);
+    color:var(--muted);min-width:30px;text-align:center;border:1px solid var(--line)}
+  .slots i.dum{color:var(--accent)} .slots i.tek{color:var(--teal)}
+  .slots i.now{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+  .slots i.tek.now{background:var(--teal);border-color:var(--teal)}
+  .ptabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .ptabs button{border:0;background:transparent;color:var(--muted);font:600 13px/1 var(--ui);padding:10px 12px;
+    border-bottom:2px solid transparent;white-space:nowrap}
+  .ptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+  .pdesc{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 12px;max-width:75ch}
+  .pdesc code{font-family:var(--mono);color:var(--teal)}
+  .pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+  .primary.small{font-size:13px;padding:9px 16px}
+  .chk{font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+  .stage{background:var(--sunk);border-radius:10px;padding:14px;min-height:80px;margin-bottom:10px}
+  .muted{color:var(--muted);font-size:12.5px;line-height:1.5}
+  .small{font-size:11.5px}
+  .qcount{font:500 12px var(--mono);color:var(--muted);margin-bottom:10px}
+  .qplay{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .qname{font-family:var(--display);font-size:34px;font-weight:600;margin:4px 0}
+  .qname em{font:500 13px var(--mono);font-style:normal;color:var(--muted)}
+  .stage svg.staff{background:var(--surface);border-radius:8px}
+  .qfind{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start}
+  svg.minichart{width:150px;height:auto;pointer-events:none}
+  .qopts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;max-width:280px}
+  .opt{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 16px/1 var(--display);
+    padding:12px 8px;border-radius:10px}
+  .opt:hover{border-color:var(--accent)}
+  .opt.right{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .opt.wrong{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .fb{font-size:13.5px;font-weight:600;min-height:20px;margin-top:10px}
+  .fb.good{color:var(--ok)} .fb.bad{color:var(--accent)}
+  .result{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .result .big{font-family:var(--display);font-size:44px;font-weight:700}
+  .kv{display:flex;flex-wrap:wrap;gap:10px 26px;margin:6px 0 12px;font-size:14px}
+  .kv > div{display:flex;flex-direction:column;gap:4px}
+  .big2{font-family:var(--display);font-size:26px;font-weight:700;margin-right:4px}
+  .ltclock{font:500 30px var(--mono);margin:6px 0}
+  .ltclock.small{font-size:14px}
+  .ltclock em{font-style:normal;font-size:14px;color:var(--muted)}
+  .pbarfill{height:10px;border-radius:5px;background:var(--surface);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);margin-bottom:8px}
+  .pbarfill i{display:block;height:100%;width:0;background:var(--ok)}
+  .mklist{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .mklist button{border:1px solid var(--line);background:var(--sunk);color:var(--muted);font:600 13px/1 var(--ui);padding:8px 12px;border-radius:999px}
+  .mklist button[aria-checked="true"]{background:var(--teal);color:var(--surface);border-color:var(--teal)}
+  .seyir{font-size:13px;line-height:1.55;margin:0 0 10px;max-width:75ch}
+  .chiprow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+  .chiprow.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}
+  .pchip{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;padding:7px 8px;border-radius:9px;
+    background:var(--surface);border:1px solid var(--line);font-size:12px;flex:0 0 auto}
+  .pchip b{font-weight:600;color:var(--teal)}
+  .pchip small{font:500 10.5px var(--mono);color:var(--muted)}
+  .pchip i{font:600 11px var(--mono);font-style:normal;min-height:13px}
+  .pchip.durak{box-shadow:inset 0 -3px 0 var(--teal)}
+  .pchip.guclu{box-shadow:inset 0 -3px 0 var(--accent)}
+  .pchip.cur{outline:2px solid var(--accent);outline-offset:1px}
+  .pchip.good{background:color-mix(in srgb,var(--ok) 18%,var(--surface));border-color:var(--ok)}
+  .pchip.off{background:color-mix(in srgb,var(--accent) 18%,var(--surface));border-color:var(--accent)}
+  .pchip.blank b{color:var(--muted)}
+  .pcadd{margin-top:8px;font-size:13px}
+  .pcadd summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:12px;margin-bottom:8px}
+  audio{width:100%;margin-bottom:10px}
+  .tablewrap{overflow-x:auto;margin-bottom:10px}
+  .rtable{border-collapse:collapse;font-size:12.5px;width:100%;min-width:360px}
+  .rtable th,.rtable td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+  .rtable th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+  .rtable tr.now td{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+  .bars{display:flex;align-items:flex-end;gap:4px;height:110px;margin:8px 0 4px}
+  .barcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px}
+  .barcol i{display:block;width:100%;background:var(--teal);border-radius:3px 3px 0 0;min-height:1px}
+  .barcol small{font:500 10px var(--mono);color:var(--muted)}
+  .practice p{font-size:13px;line-height:1.6;margin:4px 0 12px}
+  .practice p em{font-style:normal;color:var(--muted);font-size:11px}
+  .practice .label{display:block;margin-top:4px}
+  @media(max-width:520px){.qfind{grid-template-columns:1fr}}
+
+  /* Nota şeridi: makam işaretleri ve entonasyon ısı haritası */
+  .note.inscale{border-color:var(--teal);border-width:2px}
+  .note.durak{background:color-mix(in srgb,var(--teal) 22%,var(--surface))}
+  .note.guclu{border-style:dashed}
+  .note.heat-sharp{box-shadow:inset 0 -5px 0 #D2553A}
+  .note.heat-flat{box-shadow:inset 0 -5px 0 #3A7BD5}
+  .note.heat-clean{box-shadow:inset 0 -5px 0 var(--ok)}
+  .sw.hs{background:#D2553A;border-color:#D2553A}
+  .sw.hf{background:#3A7BD5;border-color:#3A7BD5}
+  .sw.hc{background:var(--ok);border-color:var(--ok)}
+  #heatbtn{margin-left:8px}
+  #heatbtn[aria-pressed="true"]{background:var(--teal);color:var(--surface);border-color:var(--teal)}
   footer{margin-top:26px;font-size:12px;color:var(--muted);line-height:1.7;max-width:70ch}
   a{color:var(--teal)}
 </style>
@@ -272,12 +377,16 @@
           <div class="label">Frekans</div>
           <div class="v" id="hz">293,7 <em>Hz</em></div>
         </div>
+        <div>
+          <div class="label">Vibrato</div>
+          <div class="v" id="vib">—</div>
+        </div>
       </div>
 
       <div class="tracewrap">
         <div class="tracehead">
           <div class="label">Entonasyon izi · son 8 saniye</div>
-          <span class="reg">yatay çizgiler: AEU perdeleri</span>
+          <span class="reg">yatay çizgiler: AEU perdeleri · kesik çizgi: glissando</span>
         </div>
         <canvas class="trace" id="trace" role="img" aria-label="Son 8 saniyede çalınan perdenin koma cinsinden grafiği"></canvas>
       </div>
@@ -389,10 +498,19 @@
     </aside>
   </main>
 
+  <section class="card practice" id="practice" aria-label="Çalışma"></section>
+
   <section class="card strip">
     <div class="striphead">
       <div class="label">Nota şeridi — tıkla ya da klavyeden çal</div>
-      <span class="reg">AEU koma akordu · tıkla: çal, tekrar tıkla: durdur</span>
+      <span class="reg">AEU koma akordu · tıkla: çal, tekrar tıkla: durdur
+        <button class="stopbtn" id="heatbtn" type="button" aria-pressed="false">Entonasyon haritası</button></span>
+    </div>
+    <div class="lg" id="heatlg" hidden>
+      <span><i class="sw hs"></i>ortalama tiz (&gt; +0,5 koma)</span>
+      <span><i class="sw hf"></i>ortalama pes (&lt; −0,5 koma)</span>
+      <span><i class="sw hc"></i>temiz</span>
+      <span>en az 3 ölçüm (0,3 sn tutulan nota) gerekir</span>
     </div>
     <div class="rail" id="rail"></div>
     <div class="legend">Alt sıra <strong>Z…</strong> pes, orta sıra <strong>A…</strong> orta, üst sıra <strong>Q…</strong> tiz bölge, rakam sırası <strong>1…</strong> altissimo — yazılı Mi3’ten Mi♭7’ye 48 nota (en tiz üçü yalnızca tıklanır). Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur. Ses çalarken mikrofon kendi sesini dinlemesin diye susar.</div>
@@ -412,6 +530,7 @@
 </div>
 
 <script src="core.js"></script>
+<script src="learn.js"></script>
 <script>
 (function(){
   const $ = id => document.getElementById(id);
@@ -600,7 +719,8 @@
     if(text) e.textContent = text;
     return e;
   }
-  function drawStaff(written){
+  function drawStaff(written){ drawStaffInto(staffEl, written); }
+  function drawStaffInto(staffEl, written){
     staffEl.replaceChildren();
     for(let s = 0; s <= 8; s += 2) staffEl.appendChild(svgEl("line", {class:"sl", x1:4, x2:146, y1:sy(s), y2:sy(s)}));
     staffEl.appendChild(svgEl("text", {class:"clef", x:6, y:sy(-1.5)}, "𝄞"));
@@ -742,10 +862,11 @@
     });
     stopBtn.disabled = current === null;
   }
-  function play(w){
-    if(current === w) return;
+  // freq verilirse nota şeridinin akordu yerine o frekans çalar (ör. makam perdesi)
+  function play(w, freq){
+    if(current === w && !freq) return;
     if(current !== null) noteOff(current);
-    noteOn(w); current = w; markPlaying();
+    noteOn(w, freq); current = w; markPlaying();
   }
   function stopSound(){
     if(current === null) return;
@@ -772,9 +893,9 @@
     if(actx.state === "suspended") actx.resume();
     return actx;
   }
-  function noteOn(w){
+  function noteOn(w, exact){
     if(voices.has(w)) return;
-    const freq = perdeFreq(w, T);
+    const freq = exact || perdeFreq(w, T);
     const a = audioCtx(), t = a.currentTime;
     const osc = a.createOscillator(), g = a.createGain();
     osc.setPeriodicWave(wave);
@@ -815,6 +936,7 @@
   // ---- Entonasyon izi ----
   const canvas = $("trace"), TRACE_MS = 8000;
   const trace = [];          // {t, comma} ya da {t, comma:null} (sessizlik)
+  const traceMarks = [];     // glissando işaretleri {t}
   let traceCenter = 0;
   function drawTrace(){
     const dpr = window.devicePixelRatio || 1;
@@ -858,6 +980,15 @@
       if(pen) g.lineTo(x, yy); else { g.moveTo(x, yy); pen = true; }
     }
     g.stroke();
+    while(traceMarks.length && now - traceMarks[0].t > TRACE_MS) traceMarks.shift();
+    g.fillStyle = col("--teal"); g.strokeStyle = col("--teal"); g.lineWidth = 1;
+    g.setLineDash([3,3]);
+    for(const m of traceMarks){
+      const x = LEFT + (1 - (now - m.t)/TRACE_MS) * (W - LEFT);
+      g.beginPath(); g.moveTo(x, 4); g.lineTo(x, H-4); g.stroke();
+      g.fillText("gliss.", x + 3, 10);
+    }
+    g.setLineDash([]);
   }
   window.addEventListener("resize", drawTrace);
 
@@ -921,6 +1052,7 @@
     perdeEl.classList.remove("resting");
     keepAwake();
     loop();
+    emit("mic", { on:true });
   }
   function stop(){
     running=false;
@@ -935,6 +1067,7 @@
     $("lvbar").style.width = "0"; $("lvbar").classList.remove("hot");
     btn.textContent = "Mikrofonu başlat"; btn.classList.remove("listening");
     chip.textContent = "durdu"; chip.classList.remove("live");
+    emit("mic", { on:false });
   }
   function silent(){
     hist.length = 0;
@@ -957,10 +1090,13 @@
     }
     const minRms = sensitivityToRms(settings.sens);
     const d = detectPitch(buf, ctx.sampleRate, 100, 2100, minRms);
+    // Dron ya da kayıt dinletilirken o ses nota sayılmasın (practice.js)
+    if(d.freq > 0 && window.SK && window.SK.ignore && window.SK.ignore(d.freq)) d.freq = -1;
     const lv = $("lvbar");
     lv.style.width = dbPos(d.rms) + "%";
     lv.classList.toggle("hot", d.rms >= minRms);
     if(d.freq > 0){
+      emit("raw", { t:now, freq:d.freq, comma:(freqToMidi(d.freq) + T - 67)*53/12 });
       hist.push(d.freq); if(hist.length>5) hist.shift();
       const med = [...hist].sort((a,b)=>a-b)[Math.floor(hist.length/2)];
       const r = analyze(med, T);
@@ -972,14 +1108,36 @@
         trace.push({t:now, comma:r.comma});
         if(stab.shown !== prev)
           announce.textContent = (r.perde ? r.perde.name + ", " : "") + "yazılı " + r.writtenName.tr;
+        emit("note", { t:now, r });
       }
     }else{
       stab.reset();
       silent();
+      emit("silence", { t:now });
     }
     drawTrace();
   }
   btn.addEventListener("click", () => running ? stop() : start());
+
+  // ---- Çalışma modülleri (practice.js) için arayüz ----
+  // Olaylar: "raw" her ölçüm {t, freq, comma}; "note" kararlı nota {t, r}; "silence" {t};
+  // "mic" mikrofon açıldı/kapandı {on}.
+  const listeners = {};
+  function emit(ev, data){ (listeners[ev] || []).forEach(fn => { try{ fn(data); }catch(e){ console.error(e); } }); }
+  window.SK = {
+    on(ev, fn){ (listeners[ev] = listeners[ev] || []).push(fn); },
+    store, cells,
+    startMic: start,
+    isListening: () => running,
+    getStream: () => stream,
+    play, stopSound,
+    playing: () => current,
+    showNote: w => show(analyze(perdeFreq(w, T), T)),
+    drawStaffInto,
+    markGlide: t => traceMarks.push({ t }),
+    windowSec: () => analyser && ctx ? analyser.fftSize / ctx.sampleRate : 0,
+    audioCtx
+  };
 
   // Çevrimdışı kullanım (http/https üzerinden açıldığında)
   if("serviceWorker" in navigator && location.protocol.startsWith("http")){
@@ -987,5 +1145,6 @@
   }
 })();
 </script>
+<script src="practice.js"></script>
 </body>
 </html>
