@@ -1,8 +1,9 @@
 // Çevrimdışı kullanım: uygulama dosyaları önbellekte tutulur.
 // Kendi dosyalarımız önce ağdan istenir (güncellemeler hemen gelsin), ağ yoksa önbellekten verilir.
 // Google Fonts dosyaları ilk yüklemede önbelleğe alınır.
-const CACHE = "sol-klarnet-v19";
-const SHELL = ["./", "index.html", "i18n.js", "core.js", "learn.js", "practice.js", "manifest.webmanifest", "icon.svg"];
+const CACHE = "sol-klarnet-v22";
+const SHELL = ["./", "index.html", "i18n.js", "core.js", "learn.js", "lessons.js", "practice.js", "manifest.webmanifest", "icon.svg",
+  "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "privacy.html"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

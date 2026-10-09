@@ -6,15 +6,23 @@
 
 const LANG = (() => {
   try{ const v = JSON.parse(localStorage.getItem("sk.lang")); if(v === "tr" || v === "en") return v; }catch(e){}
-  return (navigator.language || "tr").toLowerCase().startsWith("tr") ? "tr" : "en";
+  return "tr";                       // varsayılan Türkçe; İngilizce yalnızca Ayarlar'dan seçilirse
 })();
 document.documentElement.lang = LANG;
 
 // Tema: "auto" işletim sistemini izler; "light" / "dark" sabitler
+// Durum çubuğu rengi (theme-color) uygulamanın üst çubuğuyla aynı olsun
+const DARK_MQ = window.matchMedia("(prefers-color-scheme: dark)");
+let themeNow = "auto";
 function applyTheme(th){
+  themeNow = th;
   if(th === "light" || th === "dark") document.documentElement.setAttribute("data-theme", th);
   else document.documentElement.removeAttribute("data-theme");
+  const dark = th === "dark" || (th !== "light" && DARK_MQ.matches);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute("content", dark ? "#0E1413" : "#ECEFEE");
 }
+DARK_MQ.addEventListener("change", () => applyTheme(themeNow));
 const THEME = (() => { try{ const v = JSON.parse(localStorage.getItem("sk.theme")); return v === "light" || v === "dark" ? v : "auto"; }catch(e){ return "auto"; } })();
 applyTheme(THEME);
 
@@ -104,7 +112,9 @@ const EXACT = {
   "WFG mandal açıklamasına": "WFG key guide",
   "göre. Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.": ". Perde names follow the AEU 53-comma system, Rast = written G. Range: written E3 – E♭7.",
   // Çalışma: genel
-  "Çalışma": "Practice", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",
+  "Çalışma": "Practice", "Akort": "Tuner", "Parmak": "Fingering", "Ayarlar": "Settings", "Ana gezinme": "Main navigation",
+  "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy",
+  "Parmak pozisyonunu göster": "Show fingering", "Nota şeridi": "Note strip", "Mikrofon": "Mic", "Çalınan perde ve sapma": "Played perde and deviation", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",
   "Parmak testi": "Fingering quiz", "Uzun ton": "Long tone", "Makam": "Makam", "Taklit": "Echo", "Eser takibi": "Melody follow",
   "Kayıt": "Recording", "İlerleme": "Progress",
   "Usullü metronom": "Usul metronome", "Usul": "Usul", "Tempo": "Tempo", "vuruş/dk": "beats/min", "Başlat": "Start",
@@ -188,13 +198,43 @@ const EXACT = {
   "Makam alıştırmaları": "Makam exercises", "Entonasyon istatistiğini sıfırla": "Reset intonation statistics",
   "Tüm ilerlemeyi sıfırla": "Reset all progress", "Tüm veriler yalnızca bu cihazda, tarayıcıda saklanır.": "All data stays on this device, in the browser.",
   "Entonasyon istatistiği silinsin mi?": "Delete intonation statistics?",
-  "Seri, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır.":
-    "Delete all streak, quiz, long tone, makam, echo and intonation data? Your own melodies are kept."
+  "Seri, ders, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır.":
+    "Delete all streak, lesson, quiz, long tone, makam, echo and intonation data? Your own melodies are kept.",
+  "Biten ders": "Lessons finished", "Günlük çalışma": "Daily practice",
+  // Dersler (ders metinleri lessons.js'te iki dilde)
+  "Dersler": "Lessons",
+  "Adım adım ilerleyen dersler: her derste kısa bir anlatım ve mikrofonla değerlendirilen alıştırmalar var. Bir dersin bütün adımlarını geçince sonraki ders açılır. Bugünün çalışması, bitirdiğin derslerden her gün yeniden kurulur.":
+    "Step-by-step lessons: each has a short explanation and exercises checked through the microphone. Pass every step of a lesson to unlock the next. Today's practice is rebuilt every day from the lessons you've finished.",
+  "tüm dersleri aç": "unlock all lessons", "dinlendi": "listened", "Örneği dinle": "Hear example", "Tekrar": "Again", "Başla": "Start",
+  "Bugünün çalışması tamam.": "Today's practice is done.", "Ders tamamlandı.": "Lesson complete.",
+  "Bütün dersleri bitirdin!": "You've finished all the lessons!",
+  "Geçtin!": "Passed!", "Geçme koşulu sağlanmadı; tekrar dene.": "Not passed yet; try again.",
+  "Güzel kayış!": "Nice slide!",
+  "Atladın; parmakları deliklerden yavaşça sıyırarak kaydır.": "That was a jump; roll your fingers slowly off the holes."
 };
 
 const temp = { "temiz":"clean", "tiz":"sharp", "pes":"flat", "çıkış":"ascending", "iniş":"descending" };
 const PATTERNS = [
+  // Dersler
+  [/^(\d+) puan$/, "$1 points"],
+  [/^(\d+) hata$/, "$1 mistakes"],
+  [/^(\d+) nota$/, "$1 notes"],
+  [/^%(\d+)$/, "$1%"],
+  [/^en iyi: (.+)$/, (m, a) => "best: " + (lookup(a) ?? a)],
+  [/^Seri: (\d+) gün\.$/, "Streak: $1 days."],
+  [/^Sonraki ders: (.+) →$/, "Next lesson: $1 →"],
+  [/^Çal ve tut: (.+)$/, "Play and hold: $1"],
+  [/^Bitti! (\d+) hata$/, "Done! $1 mistakes"],
+  [/^ortalama sapma (\S+) koma$/, "mean deviation $1 commas"],
+  [/^Uzunluk (\d+) · hedef (\d+)$/, "Length $1 · target $2"],
+  [/^(\d+) notalık ezgiyi doğru çaldın!$/, "You played the $1-note phrase correctly!"],
+  [/^Çal: (\S+) · vibrato yap$/, "Play: $1 · add vibrato"],
+  [/^(\S+) Hz ±(\S+) koma( — 4–8 Hz arası olmalı)?$/, (m, r, d, x) => r + " Hz ±" + d + " commas" + (x ? " — should be 4–8 Hz" : "")],
+  [/^Düzenli vibrato: (\S+) Hz ±(\S+) koma$/, "Even vibrato: $1 Hz ±$2 commas"],
+  [/^(\S+) → (\S+): parmakları kaydırarak çık$/, "$1 → $2: slide up with your fingers"],
   [/^([±+−][\d,]+) koma sapma$/, "$1 commas off"],
+  [/^([±+−][\d,]+) koma$/, "$1 commas"],
+  [/^([+−-]?\d+) sent$/, "$1 cents"],
   [/^yazılı (\S+) — parmak şeması Mi3–Mi♭7 arası$/, "written $1 — fingering chart covers E3–E♭7"],
   [/^perdeden sapma: (\S+) koma \(≈ (\S+) sent\)$/, "off the perde: $1 commas (≈ $2 cents)"],
   [/^tampere notadan sapma: (\S+) sent( — burada perde adı yok)?$/, (m, a, b) => "off the tempered note: " + a + " cents" + (b ? " — no perde name here" : "")],

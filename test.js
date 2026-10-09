@@ -327,5 +327,80 @@ ok(sw.includes('"learn.js"') && sw.includes('"practice.js"') && sw.includes('"i1
 ok(/<head>[\s\S]*<script src="i18n.js"><\/script>[\s\S]*<\/head>/.test(html), 'tema ve dil, sayfa cizilmeden <head> icinde yukleniyor');
 ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.includes('.seg [data-mode]'), 'tema ve dil secicileri var, gosterge secimi onlara karismiyor');
 
+console.log('\n[22] Dersler');
+const D = require('./lessons.js');
+const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide'];
+const inR = w => w >= LOW_NOTE && w <= HIGH_NOTE && fingeringsFor(w).length > 0;
+let lsErr = [];
+const ids = new Set();
+for(const l of D.LESSONS){
+  if(ids.has(l.id)) lsErr.push('tekrarlanan id ' + l.id); ids.add(l.id);
+  if(!D.UNITS.some(u => u.id === l.unit)) lsErr.push(l.id + ' unite yok');
+  for(const t of [l.title, ...l.text, ...l.tips]) if(!t.tr || !t.en) lsErr.push(l.id + ' iki dilli degil');
+  if(l.makam && !L.makamById(l.makam)) lsErr.push(l.id + ' makam yok');
+  if(!l.notes.every(inR)) lsErr.push(l.id + ' notes aralik disi');
+  l.steps.forEach((st, i) => {
+    const tag = l.id + '#' + i;
+    if(!TYPES.includes(st.type)) lsErr.push(tag + ' tur ' + st.type);
+    if(st.commas && !st.commas.every(c => perdeSet.has(c))) lsErr.push(tag + ' perde olmayan koma');
+    if(!D.stepNotes(st).every(inR)) lsErr.push(tag + ' nota aralik disi');
+    for(const k of ['note','from','to']) if(st[k] != null && !inR(st[k])) lsErr.push(tag + ' ' + k);
+    if((st.type === 'scale' || (st.type === 'mimic' && !st.commas)) && !L.makamById(st.makam)) lsErr.push(tag + ' makam');
+    if(st.type === 'quiz' && (st.min > st.n || st.notes.length < 3 || !['play','find'].includes(st.mode))) lsErr.push(tag + ' test');
+    // Art arda iki farklı perde aynı yazılı notaya düşerse sırayla çalmada ayırt edilemez
+    if(st.commas){ const w = D.stepNotes(st); if(w.some((x, k) => k && x === w[k-1] && st.commas[k] !== st.commas[k-1])) lsErr.push(tag + ' farkli perde ayni yazili nota'); }
+    for(const lang of ['tr','en']){ const t = D.stepTitle(st, lang); if(!t || /undefined|null|NaN/.test(t)) lsErr.push(tag + ' baslik ' + lang + ': ' + t); }
+  });
+}
+ok(lsErr.length === 0, D.LESSONS.length + ' ders: notalar, perdeler, makamlar, basliklar ve iki dilli metinler gecerli', lsErr.slice(0, 6).join(' | '));
+ok(D.stepTitle({type:'hold', note:67, sec:8, min:55}) === 'Uzun ton: Sol4 · 8 sn · en az 55 puan' &&
+   D.stepTitle({type:'hold', note:67, sec:8, min:55}, 'en') === 'Long tone: G4 · 8 s · at least 55 points', 'adim basligi iki dilde');
+
+const prog = {};
+const first = D.LESSONS[0], second = D.LESSONS[1];
+ok(D.unlocked(first, prog) && !D.unlocked(second, prog) && D.nextLesson(prog) === first, 'baslangicta yalnizca ilk ders acik');
+ok(D.unlocked(second, prog, true), '"tum dersleri ac" secenegi kilidi kaldirir');
+const r1 = D.recordStep(prog, first, 1, { v:30 }, '2026-10-04');
+ok(!r1.ok && !D.lessonDone(first, prog), 'gecme puaninin altinda adim gecilmez');
+D.recordStep(prog, first, 1, { v:70 }, '2026-10-04');
+D.recordStep(prog, first, 1, { v:50 }, '2026-10-04');
+ok(prog[first.id].s[1].ok && prog[first.id].s[1].v === 70, 'en iyi sonuc ve gecilmis durum korunur');
+const r2 = D.recordStep(prog, first, 2, { v:60 }, '2026-10-05');
+ok(r2.done && prog[first.id].d === '2026-10-05' && D.unlocked(second, prog) && D.nextLesson(prog) === second, 'dinleme disindaki adimlar gecilince ders biter, sonraki acilir');
+const np = {}, nl = D.LESSONS.find(l => l.steps.some(s => s.type === 'notes'));
+const ni = nl.steps.findIndex(s => s.type === 'notes');
+D.recordStep(np, nl, ni, { v:9 }, 'd'); D.recordStep(np, nl, ni, { v:1 }, 'd');
+ok(np[nl.id].s[ni].ok && np[nl.id].s[ni].v === 1, 'sirayla calmada az hata daha iyi sayilir');
+
+const all = {};
+const finishL = (p, l) => l.steps.forEach((st, i) => { p[l.id] = p[l.id] || { s:{} }; p[l.id].s[i] = { v:0, ok:true }; });
+D.LESSONS.filter(l => l.unit === 'temel').forEach(l => finishL(all, l));
+const teknik = D.LESSONS.filter(l => l.unit === 'teknik'), mkL = D.LESSONS.filter(l => l.unit === 'makam');
+ok(!D.unlocked(teknik[0], all) && !D.unlocked(mkL[0], all), 'teknik ve makam klarino bitmeden kilitli');
+D.LESSONS.filter(l => l.unit === 'klarino').forEach(l => finishL(all, l));
+ok(teknik.every(l => D.unlocked(l, all)) && D.unlocked(mkL[0], all) && !D.unlocked(mkL[1], all), 'klarino bitince teknik dersleri ve ilk makam dersi acilir, makamlar sirayla');
+{ const kn = D.knownNotes(all); ok(D.knownNotes({}).join() === '67' && kn.length === 33 && kn[0] === 52 && kn[32] === 84, 'temel ve klarino dersleri Mi3–Do6 arasi her notayi ogretir', kn.length); }
+
+const lch = D.choicesFrom([55,57,59,60,62,64], 60, () => 0.3);
+ok(lch.length === 4 && lch.includes(60) && new Set(lch).size === 4 && lch.every(w => [55,57,59,60,62,64].includes(w)), 'bul secenekleri: dogru nota + listeden 3 nota');
+const qp = new Set(); for(let i=0;i<200;i++) qp.add(D.quizPickFrom([60,62,64], {}, Math.random, 60));
+ok(!qp.has(60) && qp.size === 2, 'ders testinde ayni nota art arda gelmez');
+
+const slide = []; for(let i=0;i<=16;i++) slide.push({ t:i*45, comma: i<3 ? 0 : i>13 ? 22 : (i-3)*2.2 });
+const jumpF = [{t:0,comma:0},{t:45,comma:0.1},{t:90,comma:11},{t:135,comma:22},{t:180,comma:22.05},{t:225,comma:21.98},{t:270,comma:22.02},{t:315,comma:22}];
+ok(D.glideBetween(slide) && !D.glideBetween(jumpF) && !D.glideBetween(slide.map(f => ({ ...f, t:f.t/4 }))), 'glissando adimi: yavas kayis sayilir, ani atlama ve cok hizli kayis sayilmaz');
+const ctx = { prog: all, intStats: { 62:{ n:5, sum:-6 }, 67:{ n:5, sum:1 } }, quizStats: {}, day:'2026-10-04' };
+const dp1 = D.dailyPlan(ctx), dp2 = D.dailyPlan(ctx);
+ok(JSON.stringify(dp1.steps) === JSON.stringify(dp2.steps), 'gunluk plan ayni gun icin sabit');
+ok(dp1.steps[0].type === 'hold' && dp1.steps[0].note === 62, 'isinma uzun tonu en cok sapan notada', dp1.steps[0].note);
+ok(dp1.steps.some(s => s.type === 'quiz') && dp1.steps.every(st => TYPES.includes(st.type) && D.stepNotes(st).every(inR)), 'gunluk planin adimlari gecerli');
+const allMk = { ...all }; mkL.forEach(l => finishL(allMk, l));
+const dpm = D.dailyPlan({ ...ctx, prog: allMk });
+ok(dpm.steps.some(s => s.type === 'scale') && dpm.steps.some(s => s.type === 'mimic'), 'makam dersi bitince gunluk planda dizi ve taklit var');
+const dp0 = D.dailyPlan({ prog:{}, intStats:{}, quizStats:{}, day:'2026-10-04' });
+ok(dp0.steps.length >= 1 && dp0.steps[0].note === 67, 'hic ders bitmeden de gunluk plan kurulur');
+ok(html.indexOf('<script src="lessons.js">') > html.indexOf('<script src="learn.js">') && html.indexOf('<script src="lessons.js">') < html.indexOf('<script src="practice.js">'), 'lessons.js learn.js ile practice.js arasinda yukleniyor');
+ok(sw.includes('"lessons.js"'), 'lessons.js cevrimdisi onbellekte');
+
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);

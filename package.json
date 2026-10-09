@@ -5,6 +5,18 @@
   "description": "Türk Sol klarneti için akort, parmak pozisyonu ve makam alıştırmaları",
   "scripts": {
     "test": "node test.js",
-    "start": "npx --yes http-server -c-1 -p 8080 ."
+    "start": "npx --yes http-server -c-1 -p 8080 .",
+    "icons": "node scripts/icons.js",
+    "build:web": "node scripts/build-web.js",
+    "android:sync": "npm run build:web && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:apk": "npm run android:sync && cd android && gradlew assembleDebug",
+    "android:bundle": "npm run android:sync && cd android && gradlew bundleRelease"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "sharp": "^0.35.5"
   }
 }

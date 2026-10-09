@@ -2,6 +2,15 @@
 
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/f9c1b6aa-5fdc-475c-914d-1701a7b8a2b9)
 
+## Dersler — tamamlandı (4 Ekim 2026)
+
+Çalışma bölümüne ilk sekme olarak "Dersler" eklendi: 4 ünitede 21 ders (temeller, register ve klarino, teknik ve
+üslup, makamlar), geçme koşullu adımlar, sıralı kilit ve günlük çalışma planı. Ders metinleri ve makam etütleri
+uygulama için yazıldı; parmak anlatımları ve makam ezgileri bir hocaya ya da Sol klarnetçiye kontrol ettirilmeli.
+
+Sonraki adım fikirleri: usullü ritim alıştırması (vuruşa göre zamanlama ölçümü), nim perdeler için çeyrek ses
+parmakları, gerçek eserlerden kısa bölümler (lisans netleşince).
+
 ## Öğrenme özellikleri — tamamlandı (4 Ekim 2026)
 
 Ayrıntılı kapsam ve kabul kriterleri: [Öğrenme Özellikleri Backlog](https://claude.ai/code/artifact/9aff5b8b-6e52-41e3-879b-4a5a2fde6749)

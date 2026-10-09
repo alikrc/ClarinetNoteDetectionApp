@@ -17,6 +17,21 @@ Mikrofondan çalınan sesi dinler ve şunları gösterir:
 - **Vibrato** hızı ve derinliği; entonasyon izinde **glissando** işaretleri
 - **Entonasyon haritası**: nota şeridinde her notayı ortalamada tiz, pes ya da temiz çaldığını gösterir
 
+### Dersler
+
+21 derslik sıralı müfredat; her derste kısa anlatım, ipuçları ve mikrofonla değerlendirilen, geçme koşullu adımlar var:
+
+- **Temeller**: ilk ses (açık Sol), sol el, sağ el, pes bölge ve serçe mandalları, boğaz notaları
+- **Register ve klarino**: on ikili sıçrama, Mi5–Do6
+- **Teknik ve üslup**: uzun ton, glissando (kayış ile atlamayı ayırır), vibrato (4–8 Hz)
+- **Makamlar**: perdeler ve koma, Rast, Uşşak, Hüseynî, Hicaz, Nihâvend, Kürdî, Saba, Segâh, Hüzzam
+
+Adım türleri: dinle, uzun ton, sırayla çal (makam derslerinde perde başına koma sapmasıyla), parmak testi,
+dizi çıkış-iniş, taklit, vibrato, glissando. Bir dersin bütün adımları geçilince sonraki açılır ("tüm dersleri aç"
+ile kilit kaldırılabilir). **Bugünün çalışması**, bitirilen derslerden her gün yeniden kurulur: entonasyonu en çok
+sapan notada ısınma, en çok zorlanılan notalardan parmak testi, bitirilen bir makamın dizisi ve taklit.
+Temel ve klarino dersleri yazılı Mi3–Do6 arasındaki her notayı öğretir.
+
 ### Çalışma bölümü
 
 - **Parmak testi**: "Çal" (istenen notayı çal) ve "Bul" (şemadaki parmak hangi nota) modları; zorlanılan
@@ -36,6 +51,10 @@ Tüm çalışma verileri yalnızca tarayıcıda (cihazda) saklanır.
 Ayarlar (tarayıcıda saklanır): diyapazon (La = 430–450 Hz), gösterge ölçeği (koma / sent),
 mikrofon hassasiyeti ve seviye çubuğu, tema (otomatik / açık / koyu) ve dil (Türkçe / İngilizce).
 İngilizcede makam ve perde adları Türkçe kalır, yazılı nota adları uluslararası gösterime (G4) döner.
+
+## Android
+
+Google Play için Capacitor ile paketlenir; derleme ve yayın adımları [docs/ANDROID.md](docs/ANDROID.md).
 
 ## Çalıştırma
 
@@ -63,7 +82,8 @@ npm test
 
 Testler `core.js` içindeki mantığı (perde bulucu, koma eşlemesi, parmak kodları, talimatlar,
 diyapazon, hassasiyet, titreme önleyici), `learn.js` içindeki çalışma mantığını (makam dizileri, usuller,
-test soru seçimi, uzun ton puanı, nota bölütleme, vibrato/glissando, seri) ve parmak şemasındaki her
+test soru seçimi, uzun ton puanı, nota bölütleme, vibrato/glissando, seri), `lessons.js` içindeki dersleri
+(her adımın notası aralıkta ve çalınabilir, perdeler AEU'da var, kilit sırası, günlük plan, glissando ayrımı) ve parmak şemasındaki her
 mandalın `index.html`'de çizili olduğunu doğrular. GitHub Actions her push'ta testleri çalıştırır.
 
 ## Dosyalar
@@ -74,6 +94,7 @@ mandalın `index.html`'de çizili olduğunu doğrular. GitHub Actions her push't
 | `core.js` | Perde/nota hesabı, parmak kodu çözümleme, perde bulucu (tarayıcı + Node) |
 | `i18n.js` | Tema ve dil; İngilizce çeviri sözlüğü (yeni bir metin eklenince buraya da eklenmeli) |
 | `learn.js` | Çalışma bölümünün mantığı: makam ve usul verisi, test, puanlama, istatistik (tarayıcı + Node) |
+| `lessons.js` | Ders müfredatı (iki dilli metinler), adım başlıkları, geçme koşulları, kilit sırası, günlük plan (tarayıcı + Node) |
 | `practice.js` | Çalışma bölümünün arayüzü; `index.html`'deki `window.SK` üzerinden mikrofon ve sese bağlanır |
 | `sw.js`, `manifest.webmanifest`, `icon.svg` | Çevrimdışı kullanım ve ana ekrana ekleme |
 | `test.js` | Testler |

@@ -2,16 +2,17 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sol Klarnet — Akort, Parmak, Makam</title>
 <meta name="description" content="Türk Sol klarneti için akort, Albert sistem parmak pozisyonları ve makam alıştırmaları: mikrofonla perde ve koma sapması, parmak testi, uzun ton, makam dizileri.">
-<meta name="theme-color" content="#1C5B59">
+<meta name="theme-color" content="#ECEFEE">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <script src="i18n.js"></script>
-<link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%E2%99%AF%E2%99%AD&display=swap">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<!-- Fontlar sayfayı bekletmesin: ağ yavaş ya da kapalıyken (Android uygulaması) yedek fontla hemen açılır -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%E2%99%AF%E2%99%AD&display=swap" media="print" onload="this.media='all'">
 <style>
   :root{
     --paper:#ECEFEE; --surface:#FFFFFF; --sunk:#E3E8E6;
@@ -38,36 +39,31 @@
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}   /* display:flex verilen öğeler de gizlenebilsin */
-  body{background:var(--paper);color:var(--ink);font-family:var(--ui);margin:0}
-  .page{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:28px 40px}
+  body{background:var(--paper);color:var(--ink);font-family:var(--ui);margin:0;
+    -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+  html{overscroll-behavior-y:none;scroll-padding-top:calc(var(--bar-h) + var(--sat) + 12px)}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
-  h1{font-family:var(--display);font-size:clamp(28px,5vw,40px);font-weight:700;
-     margin:6px 0 8px;letter-spacing:-.01em;text-wrap:balance}
   .lede{color:var(--muted);font-size:14px;line-height:1.6;max-width:62ch;margin:0}
 
-  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0 14px}
   button{font-family:var(--ui);cursor:pointer}
   .primary{font:600 15px/1 var(--ui);background:var(--accent);color:var(--surface);
     border:0;border-radius:999px;padding:12px 22px}
-  .primary:hover{background:var(--accent-ink)}
+  @media (hover:hover){.primary:hover{background:var(--accent-ink)}}
   .primary:disabled{opacity:.6;cursor:progress}
   .primary.listening{background:var(--sunk);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
-  button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
+  summary:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
   .chip{font:500 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;
     color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px}
   .chip.live{color:var(--ok);border-color:var(--ok)}
 
-  .settings{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;
-    background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:18px}
-  .field{display:flex;flex-direction:column;gap:6px;min-width:0}
-  .field.grow{flex:1 1 160px}
   .stepper{display:flex;align-items:center;gap:4px;font:500 14px var(--mono)}
   .stepper em{font-style:normal;color:var(--muted);font-size:12px}
   .mini{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--sunk);
     color:var(--ink);font:600 16px/1 var(--ui);padding:0}
-  .mini:hover{border-color:var(--accent)}
+  @media (hover:hover){.mini:hover{border-color:var(--accent)}}
   #a4{width:64px;font:500 14px var(--mono);text-align:center;background:var(--surface);color:var(--ink);
     border:1px solid var(--line);border-radius:8px;padding:6px 4px}
   .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--sunk)}
@@ -81,8 +77,7 @@
   .lvbar.hot{background:var(--ok)}
   .lvthr{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--accent);left:50%}
 
-  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
-  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;min-width:0}
 
   .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -146,7 +141,9 @@
   .steps .dots{font-family:var(--mono);letter-spacing:2px;margin-right:6px;color:var(--ink)}
   .steps li.idle .dots{color:var(--muted)}
 
-  svg.chart{width:100%;max-width:330px;height:auto;display:block;margin:0 auto}
+  svg.chart{width:100%;max-width:330px;height:auto;display:block;margin:0 auto;
+    max-height:max(360px,calc(100dvh - var(--bar-h) - var(--nav-h) - 300px))}
+  @media (min-width:768px){svg.chart{max-height:min(640px,calc(100dvh - var(--bar-h) - 260px))}}
   .wood{fill:var(--wood);stroke:var(--wood-edge);stroke-width:1.5}
   .ring{fill:var(--metal);stroke:var(--metal-edge);stroke-width:1}
   .brille{fill:none;stroke:var(--metal);stroke-width:3}
@@ -160,7 +157,7 @@
   .key.on text{fill:#fff}
   .key .olab{fill:var(--muted);text-anchor:start;font-weight:500}
   svg.chart .hole,svg.chart .key{cursor:pointer;outline:none}
-  svg.chart .hole:hover circle,svg.chart .key:hover rect{stroke:var(--accent);stroke-width:2.5}
+  @media (hover:hover){svg.chart .hole:hover circle,svg.chart .key:hover rect{stroke:var(--accent);stroke-width:2.5}}
   svg.chart .hole:focus-visible circle,svg.chart .key:focus-visible rect{stroke:var(--ink);stroke-width:3}
   .charttools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
   .charttools .reg{line-height:1.5}
@@ -185,14 +182,17 @@
   .fcode{display:block;font-family:var(--mono);font-size:12px;color:var(--teal);
     background:var(--sunk);border-radius:8px;padding:8px 10px;margin-top:6px;overflow-x:auto;white-space:nowrap}
 
-  .strip{margin-top:18px}
-  .striphead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
-  .rail{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 12px}
+  .strip{}
+  .striphead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+  .rail{position:relative;display:flex;gap:6px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+  .rail .note{scroll-snap-align:center}
+  @media (hover:none){.rail,.ptabs,.chiprow.scroll{scrollbar-width:none}
+    .rail::-webkit-scrollbar,.ptabs::-webkit-scrollbar,.chiprow.scroll::-webkit-scrollbar{display:none}}
   .note{flex:0 0 auto;width:84px;background:var(--surface);color:var(--ink);
     border:1px solid var(--line);border-radius:10px;padding:8px 6px;
     display:flex;flex-direction:column;align-items:center;gap:4px;
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
-  .note:hover{background:var(--sunk);border-color:var(--accent)}
+  @media (hover:hover){.note:hover{background:var(--sunk);border-color:var(--accent)}}
   .note.on,.note.on:hover{background:var(--accent);border-color:var(--accent);color:var(--surface)}
   .note.playing{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
   .note .pn{font:600 10.5px/1.3 var(--ui);color:var(--teal);min-height:28px;
@@ -204,7 +204,7 @@
 
 
   /* ---- Çalışma bölümü ---- */
-  .practice{margin-top:18px}
+  .practice{}
   .phead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
   .tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
   @media(max-width:700px){.tools{grid-template-columns:1fr}}
@@ -245,7 +245,7 @@
   .qopts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;max-width:280px}
   .opt{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 16px/1 var(--display);
     padding:12px 8px;border-radius:10px}
-  .opt:hover{border-color:var(--accent)}
+  @media (hover:hover){.opt:hover{border-color:var(--accent)}}
   .opt.right{background:var(--ok);color:#fff;border-color:var(--ok)}
   .opt.wrong{background:var(--accent);color:#fff;border-color:var(--accent)}
   .fb{font-size:13.5px;font-weight:600;min-height:20px;margin-top:10px}
@@ -294,6 +294,40 @@
   .practice .label{display:block;margin-top:4px}
   @media(max-width:520px){.qfind{grid-template-columns:1fr}}
 
+  /* Dersler */
+  .lsgrid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:700px){.lsgrid{grid-template-columns:1fr}}
+  .lsside{display:flex;flex-direction:column;gap:8px}
+  .lslist{display:flex;flex-direction:column;gap:2px;background:var(--sunk);border-radius:10px;padding:6px}
+  @media(max-width:700px){.lslist{max-height:260px;overflow-y:auto}}
+  .lsunit{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600;padding:10px 8px 4px}
+  .lsitem{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:0;background:transparent;
+    color:var(--ink);font:500 13px/1.3 var(--ui);padding:7px 8px;border-radius:7px}
+  .lsitem small{font:500 11px var(--mono);color:var(--muted);flex:0 0 auto}
+  .lsitem:hover:not(:disabled){background:var(--surface)}
+  .lsitem.cur{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
+  .lsitem.done small{color:var(--ok)}
+  .lsitem:disabled{color:var(--muted);opacity:.6;cursor:default}
+  .lsitem.daily{font-weight:600;background:color-mix(in srgb,var(--teal) 14%,transparent)}
+  .lsitem.daily.cur{background:var(--surface)}
+  .lstitle{font-family:var(--display);font-size:24px;font-weight:600;margin:4px 0 8px}
+  .lsbody > p{max-width:70ch}
+  .lstips{margin:0 0 12px;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+  .lssteps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .lsstep{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .lsstep.active{border-color:var(--accent)}
+  .lsstep.ok{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+  .lshead{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;font-size:13.5px;line-height:1.4}
+  .lsnum{flex:0 0 22px;height:22px;border-radius:50%;background:var(--sunk);color:var(--muted);font:600 11.5px/22px var(--mono);text-align:center}
+  .lsstep.ok .lsnum{background:var(--ok);color:#fff}
+  .lsname{flex:1;min-width:0}
+  .lsres{font:500 11.5px var(--mono);color:var(--muted);white-space:nowrap}
+  .lsstep.ok .lsres{color:var(--ok)}
+  .lsbtns{margin:0}
+  .lsstage{margin:10px 0 0}
+  .lsdone{margin-top:14px;padding:12px 14px;border-radius:10px;background:color-mix(in srgb,var(--ok) 14%,var(--surface));
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:13.5px}
+
   /* Nota şeridi: makam işaretleri ve entonasyon ısı haritası */
   .note.inscale{border-color:var(--teal);border-width:2px}
   .note.durak{background:color-mix(in srgb,var(--teal) 22%,var(--surface))}
@@ -304,76 +338,176 @@
   .sw.hs{background:#D2553A;border-color:#D2553A}
   .sw.hf{background:#3A7BD5;border-color:#3A7BD5}
   .sw.hc{background:var(--ok);border-color:var(--ok)}
-  #heatbtn{margin-left:8px}
+  .striphead h2{margin:0 0 4px}
+  .striphead .reg{line-height:1.45}
   #heatbtn[aria-pressed="true"]{background:var(--teal);color:var(--surface);border-color:var(--teal)}
-  footer{margin-top:26px;font-size:12px;color:var(--muted);line-height:1.7;max-width:70ch}
   a{color:var(--teal)}
+
+  /* ---- Uygulama kabuğu: üst çubuk + gezinme (telefon: alt sekme çubuğu, tablet/masaüstü: yan ray) ---- */
+  :root{
+    --bar-h:56px; --nav-h:68px; --rail-w:88px;
+    /* Android uygulaması (Capacitor SystemBars) --safe-area-inset-* verir; tarayıcı/PWA env() kullanır */
+    --sat:var(--safe-area-inset-top,env(safe-area-inset-top,0px));
+    --sab:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));
+    --sal:var(--safe-area-inset-left,env(safe-area-inset-left,0px));
+    --sar:var(--safe-area-inset-right,env(safe-area-inset-right,0px));
+  }
+  button{touch-action:manipulation}
+  .appbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:calc(var(--bar-h) + var(--sat));padding:var(--sat) calc(16px + var(--sar)) 0 calc(16px + var(--sal));
+    background:color-mix(in srgb,var(--paper) 88%,transparent);
+    -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);
+    border-bottom:1px solid var(--line);user-select:none;-webkit-user-select:none}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand img{width:30px;height:30px;border-radius:8px;flex:0 0 auto}
+  .appname{margin:0;font:700 19px/1.1 var(--display);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .micbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px 10px 13px;font-size:14px;white-space:nowrap;min-height:40px}
+  .micbtn svg{width:18px;height:18px;flex:0 0 auto}
+  .micbtn.listening::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:0 0 auto;
+    animation:livepulse 1.4s ease-in-out infinite}
+  .micbtn.listening svg{display:none}
+  @keyframes livepulse{50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.micbtn.listening::before{animation:none}}
+
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);
+    padding:0 var(--sar) var(--sab) var(--sal);background:var(--surface);border-top:1px solid var(--line);
+    user-select:none;-webkit-user-select:none}
+  .nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:var(--nav-h);
+    border:0;background:transparent;color:var(--muted);font:600 11.5px/1.1 var(--ui);padding:8px 2px}
+  .nav .ic{display:grid;place-items:center;width:56px;height:30px;border-radius:999px;transition:background .15s}
+  .nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .nav button[aria-current="page"]{color:var(--ink)}
+  .nav button[aria-current="page"] .ic{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent-ink)}
+  @media (hover:hover){.nav button:hover .ic{background:var(--sunk)}
+    .nav button[aria-current="page"]:hover .ic{background:color-mix(in srgb,var(--accent) 26%,transparent)}}
+  .nav button:focus-visible{outline:none}
+  .nav button:focus-visible .ic{outline:2px solid var(--teal);outline-offset:2px}
+
+  .page{display:flex;flex-direction:column;gap:16px;width:100%;max-width:760px;margin:0 auto;
+    padding:16px calc(16px + var(--sar)) calc(var(--nav-h) + var(--sab) + 24px) calc(16px + var(--sal))}
+  .card{padding:20px}
+  @media (max-width:420px){.card{padding:16px;border-radius:12px}}
+
+  /* Görünümler: body[data-view] hangi kartların gösterileceğini belirler */
+  body:not([data-view="tune"]) #tunecard,
+  body:not([data-view="finger"]) #fingercard,
+  body:not([data-view="practice"]) #practice,
+  body:not([data-view="settings"]) #settingsview,
+  body[data-view="practice"] .strip, body[data-view="settings"] .strip{display:none}
+  body[data-view="practice"] .grid, body[data-view="settings"] .grid{display:none}
+
+  /* Parmak kartındaki küçük akort göstergesi: çalınan perde + sapma iğnesi (geniş ekranda büyüğü yanda) */
+  .minitune{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px 14px;
+    background:var(--sunk);border-radius:12px;padding:10px 12px;margin:10px 0 12px}
+  .mtname{display:flex;flex-direction:column;min-width:76px}
+  .mtperde{font:600 22px/1.1 var(--display);letter-spacing:-.01em;white-space:nowrap;transition:opacity .15s}
+  .minitune.resting .mtperde{color:var(--muted)}
+  .mtkoma{font:500 11.5px var(--mono);color:var(--accent);margin-top:2px;white-space:nowrap}
+  .mttrack{position:relative;height:30px;border-radius:8px;background:var(--surface);overflow:hidden}
+  .mtzone{position:absolute;top:0;bottom:0;background:var(--ok);opacity:.14}
+  .mtmid{position:absolute;left:50%;top:4px;bottom:4px;width:2px;margin-left:-1px;background:var(--ok)}
+  .mtneedle{position:absolute;top:3px;bottom:3px;width:4px;margin-left:-2px;border-radius:2px;background:var(--accent);
+    left:50%;transition:left .08s linear}
+  .mtneedle.good{background:var(--ok)}
+  .mtstate{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--muted)}
+  .mtstate b{font-weight:600;color:var(--ink)}
+  .minitune.live .mtstate b{color:var(--ok)}
+  @media (prefers-reduced-motion: reduce){.mtneedle,.mtperde{transition:none}}
+  @media (min-width:1100px){body[data-view="tune"] .minitune{display:none}}
+  .cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .gofinger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin-top:18px;
+    border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:12px;padding:12px 14px;
+    font:600 13.5px/1.2 var(--ui);text-align:left}
+  .gofinger span{color:var(--muted);font-weight:500}
+
+  /* Ayarlar görünümü: gruplu liste */
+  .vtitle{font:700 26px/1.2 var(--display);margin:4px 0 0;letter-spacing:-.01em}
+  #settingsview{gap:20px}
+  .sgroup{display:flex;flex-direction:column;gap:8px}
+  .sgroup > .label{padding-left:4px}
+  .settings{display:flex;flex-direction:column;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:0;margin:0;overflow:hidden}
+  .srow{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;
+    padding:12px 16px;min-height:56px;border-top:1px solid var(--line)}
+  .srow:first-child{border-top:0}
+  .srow > .label,.srow > label.label{font-size:14px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:500}
+  .srow .hint{flex-basis:100%;font-size:12px;color:var(--muted);line-height:1.5;margin-top:-4px}
+  .srow.block{display:block}
+  .srow.block .level{margin-top:10px}
+  .about{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .about .lede{margin-top:8px}
+  footer{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;max-width:70ch}
+  .aboutlinks{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:13px;font-weight:600}
+
+  /* Dokunmatik: 44px civarı dokunma hedefleri, iOS'ta odaklanınca yakınlaştırmasın diye 16px giriş yazısı */
+  @media (pointer:coarse){
+    .mini{width:40px;height:40px}
+    #a4{padding:9px 4px}
+    .seg button{padding:11px 14px}
+    .stopbtn{min-height:40px;padding:10px 14px}
+    .alts button,.mklist button{padding:11px 14px}
+    .ptabs button{padding:14px 14px}
+    .primary.small{padding:12px 18px}
+    .opt{padding:15px 8px}
+    .lsitem{padding:11px 10px}
+    select,input[type=text],input[type=number],textarea,#a4{font-size:16px}
+    input[type=range]{height:28px}
+  }
+  /* Klavye kısayolları dokunmatik cihazlarda anlamsız */
+  @media (hover:none){.note .kk,.kbdhint{display:none}}
+
+  /* Tablet ve üstü: alt çubuk yerine sol tarafta gezinme rayı */
+  @media (min-width:768px){
+    .app{display:grid;grid-template-columns:calc(var(--rail-w) + var(--sal)) minmax(0,1fr)}
+    .appbar{grid-column:1/-1;padding-left:calc(24px + var(--sal))}
+    .nav{position:sticky;top:calc(var(--bar-h) + var(--sat));align-self:start;height:calc(100dvh - var(--bar-h) - var(--sat));
+      display:flex;flex-direction:column;gap:6px;padding:14px 0 calc(14px + var(--sab)) var(--sal);
+      border-top:0;border-right:1px solid var(--line);background:transparent}
+    .nav button{min-height:64px;padding:6px 4px}
+    .page{padding:24px calc(24px + var(--sar)) calc(40px + var(--sab)) 24px;gap:18px}
+    .card{padding:22px}
+  }
+  /* Geniş ekran: akort ve parmak şeması yan yana (ayrı "Parmak" sekmesine gerek kalmaz) */
+  @media (min-width:1100px){
+    .page{max-width:1040px}
+    body[data-view="tune"] #fingercard{display:block}
+    body[data-view="tune"] .grid{grid-template-columns:minmax(0,1fr) 360px}
+    .nav button[data-view="finger"], .gofinger{display:none}
+  }
+  body[data-view="settings"] .page{max-width:680px}
 </style>
 </head>
-<body>
+<body data-view="tune">
 
-<div class="page">
-  <header>
-    <div class="eyebrow">Türk Sol klarneti · Albert sistem · AEU 53 koma</div>
-    <h1>Sol Klarnet</h1>
-    <p class="lede">Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol).</p>
+<div class="app">
+  <header class="appbar">
+    <div class="brand">
+      <img src="icon.svg" alt="" width="30" height="30">
+      <h1 class="appname">Sol Klarnet</h1>
+    </div>
+    <button class="primary micbtn" id="btn" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      <span id="btnlab">Mikrofon</span>
+    </button>
   </header>
 
-  <div class="controls">
-    <button class="primary" id="btn">Mikrofonu başlat</button>
-    <span class="chip" id="chip">örnek gösterim</span>
-  </div>
+  <nav class="nav" aria-label="Ana gezinme">
+    <button type="button" data-view="tune" aria-current="page"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.4"/></svg></span><span>Akort</span></button>
+    <button type="button" data-view="finger"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2.5" width="6" height="19" rx="3"/><circle cx="12" cy="8" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="16" r="1.3"/></svg></span><span>Parmak</span></button>
+    <button type="button" data-view="practice"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></span><span>Çalışma</span></button>
+    <button type="button" data-view="settings"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span>Ayarlar</span></button>
+  </nav>
 
-  <div class="settings">
-    <div class="field">
-      <label class="label" for="a4">Diyapazon (La)</label>
-      <span class="stepper">
-        <button type="button" class="mini" id="a4dn" aria-label="Diyapazonu yarım Hz düşür">−</button>
-        <input id="a4" type="number" min="430" max="450" step="0.5" value="440" inputmode="decimal">
-        <button type="button" class="mini" id="a4up" aria-label="Diyapazonu yarım Hz yükselt">+</button>
-        <em>Hz</em>
-      </span>
-    </div>
-    <div class="field">
-      <span class="label" id="modelab">Gösterge</span>
-      <div class="seg" role="radiogroup" aria-labelledby="modelab">
-        <button type="button" role="radio" data-mode="koma" aria-checked="true">Koma</button>
-        <button type="button" role="radio" data-mode="sent" aria-checked="false">Sent</button>
-      </div>
-    </div>
-    <div class="field">
-      <label class="label" for="sens">Hassasiyet</label>
-      <input type="range" id="sens" min="1" max="10" step="1" value="5">
-    </div>
-    <div class="field">
-      <span class="label" id="themelab">Tema</span>
-      <div class="seg" role="radiogroup" aria-labelledby="themelab" id="themeseg">
-        <button type="button" role="radio" data-theme="auto">Otomatik</button>
-        <button type="button" role="radio" data-theme="light">Açık</button>
-        <button type="button" role="radio" data-theme="dark">Koyu</button>
-      </div>
-    </div>
-    <div class="field">
-      <span class="label" id="langlab">Dil</span>
-      <div class="seg" role="radiogroup" aria-labelledby="langlab" id="langseg">
-        <button type="button" role="radio" data-lang="tr" lang="tr">TR</button>
-        <button type="button" role="radio" data-lang="en" lang="en">EN</button>
-      </div>
-    </div>
-    <div class="field grow">
-      <span class="label">Mikrofon seviyesi</span>
-      <div class="level" title="Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir">
-        <div class="lvbar" id="lvbar"></div><div class="lvthr" id="lvthr"></div>
-      </div>
-    </div>
-  </div>
-
+<div class="page" id="content">
+  <div class="sr" aria-live="polite" id="announce"></div>
   <main class="grid">
-    <section class="card" aria-labelledby="perdelab">
-      <div class="label" id="perdelab">AEU perdesi</div>
+    <section class="card" id="tunecard" aria-labelledby="perdelab">
+      <div class="cardhead">
+        <div class="label" id="perdelab">AEU perdesi</div>
+        <span class="chip" id="chip" role="status">örnek gösterim</span>
+      </div>
       <div class="perde resting" id="perde">Rast</div>
       <div class="koma" id="koma">+0,0 koma sapma</div>
-      <div class="sr" aria-live="polite" id="announce"></div>
 
       <div class="meter">
         <div class="track" id="track"><div class="needle" id="needle"></div></div>
@@ -406,12 +540,19 @@
         </div>
         <canvas class="trace" id="trace" role="img" aria-label="Son 8 saniyede çalınan perdenin koma cinsinden grafiği"></canvas>
       </div>
+
+      <button type="button" class="gofinger" data-goto="finger">Parmak pozisyonunu göster <span aria-hidden="true">→</span></button>
     </section>
 
-    <aside class="card" aria-labelledby="fingerlab">
+    <aside class="card" id="fingercard" aria-labelledby="fingerlab">
       <div class="fingerhead">
         <div class="label" id="fingerlab">Parmak pozisyonu</div>
         <span class="reg" id="reg">Chalumeau</span>
+      </div>
+      <div class="minitune resting" id="minitune">
+        <div class="mtname"><span class="mtperde" id="mtperde">Rast</span><span class="mtkoma" id="mtkoma">±0,0 koma</span></div>
+        <div class="mttrack" aria-hidden="true"><div class="mtzone" id="mtzone"></div><div class="mtmid"></div><div class="mtneedle" id="mtneedle"></div></div>
+        <div class="mtstate"><span>Çalınan perde ve sapma</span><b id="mtchip">örnek gösterim</b></div>
       </div>
       <div class="fnoterow">
         <div class="fnote" id="fnote">Sol4 <em>yazılı</em></div>
@@ -518,9 +659,11 @@
 
   <section class="card strip">
     <div class="striphead">
-      <div class="label">Nota şeridi — tıkla ya da klavyeden çal</div>
-      <span class="reg">AEU koma akordu · tıkla: çal, tekrar tıkla: durdur
-        <button class="stopbtn" id="heatbtn" type="button" aria-pressed="false">Entonasyon haritası</button></span>
+      <div>
+        <h2 class="label">Nota şeridi</h2>
+        <div class="reg">AEU koma akordu · tıkla: çal, tekrar tıkla: durdur</div>
+      </div>
+      <button class="stopbtn" id="heatbtn" type="button" aria-pressed="false">Entonasyon haritası</button>
     </div>
     <div class="lg" id="heatlg" hidden>
       <span><i class="sw hs"></i>ortalama tiz (&gt; +0,5 koma)</span>
@@ -529,29 +672,97 @@
       <span>en az 3 ölçüm (0,3 sn tutulan nota) gerekir</span>
     </div>
     <div class="rail" id="rail"></div>
-    <div class="legend">Alt sıra <strong>Z…</strong> pes, orta sıra <strong>A…</strong> orta, üst sıra <strong>Q…</strong> tiz bölge, rakam sırası <strong>1…</strong> altissimo — yazılı Mi3’ten Mi♭7’ye 48 nota (en tiz üçü yalnızca tıklanır). Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur. Ses çalarken mikrofon kendi sesini dinlemesin diye susar.</div>
+    <div class="legend kbdhint">Alt sıra <strong>Z…</strong> pes, orta sıra <strong>A…</strong> orta, üst sıra <strong>Q…</strong> tiz bölge, rakam sırası <strong>1…</strong> altissimo — yazılı Mi3’ten Mi♭7’ye 48 nota (en tiz üçü yalnızca tıklanır). Tuşlar klavyedeki fiziksel konuma göre çalışır; aynı tuş ya da Esc sesi durdurur. Ses çalarken mikrofon kendi sesini dinlemesin diye susar.</div>
   </section>
 
-  <footer>
-    Parmak verisi Woodwind Fingering Guide'ın Oehler/Albert temel
-    (<a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html" target="_blank" rel="noopener">chalumeau</a>,
-    <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_2.html" target="_blank" rel="noopener">klarino</a>,
-    <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_3.html" target="_blank" rel="noopener">altissimo</a>) ve alternatif
-    (<a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_1.html" target="_blank" rel="noopener">1</a>,
-    <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_2.html" target="_blank" rel="noopener">2</a>,
-    <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_3.html" target="_blank" rel="noopener">3</a>,
-    <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_4.html" target="_blank" rel="noopener">4</a>) tablolarından; yalnızca Albert sistemde çalınabilen parmaklar alındı; mandal adları <a href="https://www.wfg.woodwind.org/clarinet/cl_fing.html" target="_blank" rel="noopener">WFG mandal açıklamasına</a> göre.
-    Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.
-  </footer>
+  <section id="settingsview" class="sgroup" aria-labelledby="setlab">
+    <h2 class="vtitle" id="setlab">Ayarlar</h2>
+
+    <div class="sgroup">
+      <span class="label">Akort</span>
+      <div class="settings">
+        <div class="srow">
+          <label class="label" for="a4">Diyapazon (La)</label>
+          <span class="stepper">
+            <button type="button" class="mini" id="a4dn" aria-label="Diyapazonu yarım Hz düşür">−</button>
+            <input id="a4" type="number" min="430" max="450" step="0.5" value="440" inputmode="decimal">
+            <button type="button" class="mini" id="a4up" aria-label="Diyapazonu yarım Hz yükselt">+</button>
+            <em>Hz</em>
+          </span>
+        </div>
+        <div class="srow">
+          <span class="label" id="modelab">Gösterge</span>
+          <div class="seg" role="radiogroup" aria-labelledby="modelab">
+            <button type="button" role="radio" data-mode="koma" aria-checked="true">Koma</button>
+            <button type="button" role="radio" data-mode="sent" aria-checked="false">Sent</button>
+          </div>
+        </div>
+        <div class="srow">
+          <label class="label" for="sens">Hassasiyet</label>
+          <input type="range" id="sens" min="1" max="10" step="1" value="5">
+        </div>
+        <div class="srow block">
+          <span class="label">Mikrofon seviyesi</span>
+          <div class="level" aria-hidden="true">
+            <div class="lvbar" id="lvbar"></div><div class="lvthr" id="lvthr"></div>
+          </div>
+          <div class="hint">Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sgroup">
+      <span class="label">Görünüm</span>
+      <div class="settings">
+        <div class="srow">
+          <span class="label" id="themelab">Tema</span>
+          <div class="seg" role="radiogroup" aria-labelledby="themelab" id="themeseg">
+            <button type="button" role="radio" data-theme="auto">Otomatik</button>
+            <button type="button" role="radio" data-theme="light">Açık</button>
+            <button type="button" role="radio" data-theme="dark">Koyu</button>
+          </div>
+        </div>
+        <div class="srow">
+          <span class="label" id="langlab">Dil</span>
+          <div class="seg" role="radiogroup" aria-labelledby="langlab" id="langseg">
+            <button type="button" role="radio" data-lang="tr" lang="tr">TR</button>
+            <button type="button" role="radio" data-lang="en" lang="en">EN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sgroup">
+      <span class="label">Hakkında</span>
+      <div class="about">
+        <div class="eyebrow">Türk Sol klarneti · Albert sistem · AEU 53 koma</div>
+        <p class="lede">Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol).</p>
+        <footer>
+          Parmak verisi Woodwind Fingering Guide'ın Oehler/Albert temel
+          (<a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html" target="_blank" rel="noopener">chalumeau</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_2.html" target="_blank" rel="noopener">klarino</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_3.html" target="_blank" rel="noopener">altissimo</a>) ve alternatif
+          (<a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_1.html" target="_blank" rel="noopener">1</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_2.html" target="_blank" rel="noopener">2</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_3.html" target="_blank" rel="noopener">3</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_4.html" target="_blank" rel="noopener">4</a>) tablolarından; yalnızca Albert sistemde çalınabilen parmaklar alındı; mandal adları <a href="https://www.wfg.woodwind.org/clarinet/cl_fing.html" target="_blank" rel="noopener">WFG mandal açıklamasına</a> göre.
+          Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.
+        </footer>
+        <div class="aboutlinks"><a href="privacy.html">Gizlilik politikası</a></div>
+      </div>
+    </div>
+  </section>
+</div>
 </div>
 
 <script src="core.js"></script>
 <script src="learn.js"></script>
+<script src="lessons.js"></script>
 <script>
 (function(){
   const $ = id => document.getElementById(id);
   const T = SOL_TRANSPOSE;
-  const btn=$("btn"), chip=$("chip");
+  const btn=$("btn"), btnLab=$("btnlab"), chip=$("chip");
   const perdeEl=$("perde"), komaEl=$("koma"), needle=$("needle"), centtxt=$("centtxt"), track=$("track");
   const writtenEl=$("written"), soundEl=$("sounding"), hzEl=$("hz"),
         fcode=$("fcode"), regEl=$("reg"), fnote=$("fnote"), stepsEl=$("steps"), announce=$("announce");
@@ -798,6 +1009,16 @@
 
   // ---- Gösterim ----
   let lastShown = null, lastFingerKey = null;
+  const miniTune=$("minitune"), mtPerde=$("mtperde"), mtKoma=$("mtkoma"), mtNeedle=$("mtneedle"), mtZone=$("mtzone"), mtChip=$("mtchip");
+  // Büyük göstergenin durumunu (dinliyor/sessiz, soluk perde) küçüğe yansıt
+  function syncMini(){
+    mtChip.textContent = chip.textContent;
+    miniTune.classList.toggle("live", chip.classList.contains("live"));
+    miniTune.classList.toggle("resting", perdeEl.classList.contains("resting"));
+    mtPerde.style.opacity = perdeEl.style.opacity || 1;
+  }
+  new MutationObserver(syncMini).observe(chip, {childList:true, characterData:true, subtree:true, attributes:true});
+  new MutationObserver(syncMini).observe(perdeEl, {attributes:true, attributeFilter:["class","style"]});
   function show(r){
     lastShown = r;
     const komaMode = settings.mode==="koma" && r.inRange && r.perde;
@@ -828,6 +1049,14 @@
     const v = komaMode ? r.perde.delta : settings.mode==="sent" ? r.cents : r.cents*53/1200;
     needle.style.left = Math.max(0, Math.min(100, 50 + v/shownSc.max*50)) + "%";
     needle.classList.toggle("good", Math.abs(v) <= shownSc.ok);
+    // Küçük gösterge (parmak kartı)
+    const npos = Math.max(0, Math.min(100, 50 + v/shownSc.max*50));
+    mtNeedle.style.left = npos + "%";
+    mtNeedle.classList.toggle("good", Math.abs(v) <= shownSc.ok);
+    mtZone.style.left = (50 - shownSc.ok/shownSc.max*50) + "%"; mtZone.style.width = (shownSc.ok/shownSc.max*100) + "%";
+    mtPerde.textContent = perdeEl.textContent;
+    mtKoma.textContent = !r.inRange ? "—" : komaMode ? fmtKoma(r.perde.delta) + " koma"
+      : (r.cents>0?"+":"") + r.cents + " sent";
 
     // Henüz iz yokken grafik ızgarasını gösterilen notaya ortala
     if(!trace.length){ traceCenter = r.comma; drawTrace(); }
@@ -881,7 +1110,19 @@
     }).catch(() => {});
   }
 
-  function markActive(w){ cells.forEach((el,k) => el.classList.toggle("on", k===w)); }
+  // Etkin notayı şeritte ortala; yalnızca yatay kaydırır (sayfa dikeyde zıplamasın)
+  const rail = $("rail");
+  let railActive = null;
+  function centerInRail(w, smooth){
+    const el = cells.get(w);
+    if(!el || !rail.clientWidth) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    rail.scrollTo({ left: el.offsetLeft - (rail.clientWidth - el.offsetWidth)/2, behavior: smooth && !reduce ? "smooth" : "auto" });
+  }
+  function markActive(w){
+    cells.forEach((el,k) => el.classList.toggle("on", k===w));
+    if(w !== railActive){ railActive = w; centerInRail(w, true); }
+  }
 
   // ---- Ses: aynı anda tek nota, aç/kapa ----
   let current = null;                               // çalan yazılı nota
@@ -959,7 +1200,6 @@
     if(i < 0) return;
     e.preventDefault();
     toggleNote(LOW + i);
-    cells.get(LOW + i).scrollIntoView({block:"nearest", inline:"nearest"});
   });
   // Sekme arka plana geçince unutulan ses çalmaya devam etmesin
   document.addEventListener("visibilitychange", () => { if(document.hidden) stopSound(); });
@@ -1054,6 +1294,8 @@
   }
   document.addEventListener("visibilitychange", () => {
     if(running && document.visibilityState === "visible") keepAwake();
+    // Android uygulamasında arka plana geçince mikrofonu bırak (izin göstergesi açık kalmasın)
+    if(running && document.hidden && window.Capacitor) stop();
   });
 
   async function start(){
@@ -1078,7 +1320,7 @@
     buf = new Float32Array(analyser.fftSize);
     hist.length = 0; stab.reset();
     running = true; starting = false; btn.disabled = false;
-    btn.textContent = "Durdur"; btn.classList.add("listening");
+    btnLab.textContent = "Durdur"; btn.classList.add("listening");
     chip.textContent = "dinliyor"; chip.classList.add("live");
     perdeEl.classList.remove("resting");
     keepAwake();
@@ -1096,7 +1338,7 @@
     perdeEl.style.opacity = 1;
     perdeEl.classList.add("resting");
     $("lvbar").style.width = "0"; $("lvbar").classList.remove("hot");
-    btn.textContent = "Mikrofonu başlat"; btn.classList.remove("listening");
+    btnLab.textContent = "Mikrofon"; btn.classList.remove("listening");
     chip.textContent = "durdu"; chip.classList.remove("live");
     emit("mic", { on:false });
   }
@@ -1150,6 +1392,51 @@
   }
   btn.addEventListener("click", () => running ? stop() : start());
 
+  // ---- Görünümler: Akort / Parmak / Çalışma / Ayarlar ----
+  // Ana görünüm Akort'tur. Başka görünüme geçiş geçmişe bir kayıt ekler; böylece Android geri tuşu
+  // (ve tarayıcı geri tuşu) önce Akort'a döner, sonra uygulamadan çıkar. Görünümler arası geçişte
+  // her görünümün kaydırma konumu korunur.
+  const VIEWS = ["tune", "finger", "practice", "settings"];
+  const navBtns = document.querySelectorAll(".nav [data-view]");
+  const wide = window.matchMedia("(min-width:1100px)");   // geniş ekranda parmak şeması akortla yan yana
+  const scrollPos = {};
+  let view = "tune";
+  function setView(v){
+    if(!VIEWS.includes(v)) v = "tune";
+    if(v === "finger" && wide.matches) v = "tune";
+    if(v === view) return;
+    scrollPos[view] = window.scrollY;
+    view = v;
+    document.body.dataset.view = v;
+    navBtns.forEach(b => b.dataset.view === v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    if(v !== "settings") store.set("view", v);
+    window.scrollTo(0, scrollPos[v] || 0);
+    drawTrace();                                         // gizliyken boyutu 0'dı
+    if(v === "finger" || v === "tune") centerInRail(railActive, false);
+  }
+  function go(v){
+    if(v === view || (v === "finger" && wide.matches)) return;
+    if(v === "tune"){
+      if(history.state && history.state.view && history.state.view !== "tune") history.back();
+      else setView("tune");
+      return;
+    }
+    if(view === "tune") history.pushState({view:v}, "");
+    else history.replaceState({view:v}, "");
+    setView(v);
+  }
+  window.addEventListener("popstate", e => setView(e.state && e.state.view || "tune"));
+  navBtns.forEach(b => b.addEventListener("click", () => {
+    if(b.dataset.view === view) window.scrollTo({top:0, behavior:"smooth"});   // aynı sekmeye dokununca başa dön
+    else go(b.dataset.view);
+  }));
+  document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g) go(g.dataset.goto); });
+  wide.addEventListener("change", () => { if(wide.matches && view === "finger") go("tune"); else drawTrace(); });
+  // Açılışta son kullanılan görünüme dön (#nota= bağlantısı akortu açar)
+  history.replaceState({view:"tune"}, "");
+  const startView = /nota=/.test(location.hash) ? "tune" : store.get("view", "tune");
+  if(startView !== "tune") go(startView);
+
   // ---- Çalışma modülleri (practice.js) için arayüz ----
   // Olaylar: "raw" her ölçüm {t, freq, comma}; "note" kararlı nota {t, r}; "silence" {t};
   // "mic" mikrofon açıldı/kapandı {on}.
@@ -1170,8 +1457,8 @@
     audioCtx
   };
 
-  // Çevrimdışı kullanım (http/https üzerinden açıldığında)
-  if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  // Çevrimdışı kullanım (http/https üzerinden açıldığında; Android uygulamasında dosyalar zaten pakette)
+  if("serviceWorker" in navigator && location.protocol.startsWith("http") && !window.Capacitor){
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 })();

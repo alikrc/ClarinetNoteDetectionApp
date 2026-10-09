@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sol Klarnet</string>
+    <string name="title_activity_main">Sol Klarnet</string>
+    <string name="package_name">com.alikrc.solklarnet</string>
+    <string name="custom_url_scheme">com.alikrc.solklarnet</string>
+</resources>

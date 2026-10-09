@@ -1,0 +1,8 @@
+{
+  "appId": "com.alikrc.solklarnet",
+  "appName": "Sol Klarnet",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#ECEFEE"
+  }
+}
