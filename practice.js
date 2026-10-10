@@ -20,6 +20,7 @@
   // ---- İskelet ----
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
   const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["long","Uzun ton"],["makam","Makam"],["mimic","Taklit"],
+                ["rhythm",L("Ritim", "Rhythm")],["ear",L("Kulak", "Ear")],["seyir",L("Seyir", "Seyir")],
                 ["piece","Eser takibi"],["rec","Kayıt"],["progress","İlerleme"]];
   const root = $("practice");
   root.innerHTML = `
@@ -100,14 +101,14 @@
     slotsEl.innerHTML = usulSlots(u).map((s, i) =>
       `<i class="${s==="D" ? "dum" : s==="T" ? "tek" : "rest"}${i===cur ? " now" : ""}">${s==="D" ? "Düm" : s==="T" ? "Tek" : "·"}</i>`).join("");
   }
-  function hit(a, kind, t){
+  function hit(a, kind, t, vol = 1){
     const g = a.createGain();
     g.connect(a.destination);
     if(kind === "D"){
       // Düm: perde bulucunun alt sınırının (100 Hz) altında kalır, nota sanılmaz
       const o = a.createOscillator();
       o.frequency.setValueAtTime(85, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.25);
-      g.gain.setValueAtTime(0.6, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      g.gain.setValueAtTime(0.6*vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
       o.connect(g); o.start(t); o.stop(t + 0.32);
     }else{
       // Tek: süzülmüş gürültü, perdesiz
@@ -116,7 +117,7 @@
       const src = a.createBufferSource(), f = a.createBiquadFilter();
       f.type = "bandpass"; f.frequency.value = 2500; f.Q.value = 1.2;
       src.buffer = buf; src.connect(f).connect(g);
-      g.gain.setValueAtTime(0.5, t);
+      g.gain.setValueAtTime(0.5*vol, t);
       src.start(t);
     }
   }
@@ -279,15 +280,20 @@
   const SVGNS = "http://www.w3.org/2000/svg";
   function staffSvg(){ const s = document.createElementNS(SVGNS, "svg"); s.setAttribute("viewBox", "0 0 150 108"); s.setAttribute("class", "staff"); s.setAttribute("role", "img"); return s; }
 
+  // Ses kalitesi: netlik ve ses gücü dengesi (skills.js toneQuality)
+  const toneKv = tq => tq ? `<div><span class="label">${L("Ses temizliği", "Tone clarity")}</span>%${tq.clarity}</div><div><span class="label">${L("Ses gücü dengesi", "Volume steadiness")}</span>%${tq.steadiness}</div>` : "";
+  const toneTips = tq => tq ? tq.tips.map(t => pick(t, LANG)).join(" ") : "";
+
   // ======== 1. Parmak ezberi testi ========
   modules.quiz = (() => {
     const P = $("pp-quiz");
     P.innerHTML = `
-      <p class="pdesc">Ezberini sına: <strong>Çal</strong> modunda istenen notayı klarnette çal, <strong>Bul</strong> modunda şemadaki parmağın hangi nota olduğunu seç (ya da çal). Zorlandığın notalar daha sık gelir. Bir bölgede son 20 cevabın %80'i doğruysa sonraki bölge açılır.</p>
+      <p class="pdesc">Ezberini sına: <strong>Çal</strong> modunda istenen notayı klarnette çal, <strong>Bul</strong> modunda şemadaki parmağın hangi nota olduğunu seç (ya da çal). ${L("<strong>Oku</strong> modunda dizekteki notayı adını görmeden çal. ", "In <strong>Read</strong> mode play the note on the staff without seeing its name. ")}Zorlandığın notalar daha sık gelir. Bir bölgede son 20 cevabın %80'i doğruysa sonraki bölge açılır.</p>
       <div class="pbar">
         <div class="seg" role="radiogroup" aria-label="Test modu" id="qmode">
           <button type="button" role="radio" data-m="play">Çal</button>
           <button type="button" role="radio" data-m="find">Bul</button>
+          <button type="button" role="radio" data-m="staff">${L("Oku", "Read")}</button>
         </div>
         <select id="qlevel" aria-label="Bölge"></select>
         <label class="chk" id="qaltwrap"><input type="checkbox" id="qalt"> alternatif parmaklar da</label>
@@ -323,7 +329,7 @@
       return v === "all" ? LEVELS.slice(0, n) : [LEVELS.find(l => l.id === v)];
     };
     $("qstart").addEventListener("click", async () => {
-      if(mode === "play" && !(await needMic())) return;
+      if((mode === "play" || mode === "staff") && !(await needMic())) return;
       round = { i:0, right:0, total:20, levels:chosenLevels(), mode, wrongs:{}, last:null };
       ask();
     });
@@ -335,10 +341,12 @@
       round.last = w; round.q = { w, t0: performance.now(), done:false };
       hold.reset();
       stage.innerHTML = `<div class="qcount">Soru ${round.i+1}/${round.total} · ${round.right} doğru</div>`;
-      if(round.mode === "play"){
+      if(round.mode === "play" || round.mode === "staff"){
         const box = document.createElement("div"); box.className = "qplay";
         const st = staffSvg(); SK.drawStaffInto(st, w);
-        box.innerHTML = `<div><div class="label">Bu notayı çal</div><div class="qname">${nn(w)} <em>yazılı</em></div><div class="muted">${perdeOf(w)}</div></div>`;
+        // Oku modunda nota adı gizli: dizekten okuyup çal
+        box.innerHTML = round.mode === "staff" ? `<div><div class="label">${L("Dizekteki notayı çal", "Play the note on the staff")}</div><div class="qname">?</div></div>`
+          : `<div><div class="label">Bu notayı çal</div><div class="qname">${nn(w)} <em>yazılı</em></div><div class="muted">${perdeOf(w)}</div></div>`;
         box.appendChild(st);
         stage.appendChild(box);
       }else{
@@ -438,7 +446,7 @@
     $("ltstart").addEventListener("click", async () => {
       if(!(await needMic())) return;
       const v = $("ltnote").value;
-      run = { w: v === "auto" ? null : +v, start:null, devs:[], lastOk:0 };
+      run = { w: v === "auto" ? null : +v, start:null, devs:[], lastOk:0, tq:[] };
       stage.innerHTML = `<div class="ltlive">
         <div class="label" id="ltwhat">${run.w ? "Çal: " + label(run.w) : "Bir nota çal ve tut"}</div>
         <div class="ltclock" id="ltclock">0,0 <em>/ ${dur} sn</em></div>
@@ -449,7 +457,7 @@
       const durMs = run.start ? t - run.start : 0;
       const w = run.w;
       if(!run.start || run.devs.length < 5){ run = null; stage.innerHTML = `<div class="muted">Nota tutulamadı, yeniden dene.</div>`; return; }
-      const s = longToneScore(run.devs, durMs, dur*1000);
+      const s = longToneScore(run.devs, durMs, dur*1000), tq = toneQuality(run.tq);
       const prev = best[w];
       if(!prev || s.score > prev.score) best[w] = { score:s.score, d: dayKey(new Date()) };
       store.set("long.best", best);
@@ -457,8 +465,8 @@
       stage.innerHTML = `<div class="result"><div class="big">${s.score}</div><div>puan · ${label(w)}${prev && s.score > prev.score ? " · <strong>yeni rekor</strong>" : prev ? " · rekor " + prev.score : ""}</div></div>
         <div class="kv"><div><span class="label">Süre</span>${num(durMs/1000)} sn</div>
         <div><span class="label">Ortalama sapma</span>${sgn(s.mean)} koma</div>
-        <div><span class="label">Yayılım</span>${num(s.sd, 2)} koma</div></div>
-        <div class="muted">${Math.abs(s.mean) > 0.5 ? (s.mean > 0 ? "Tiz çalıyorsun; dudak baskısını azalt ya da biraz daha pes düşün." : "Pes çalıyorsun; hava desteğini artır.") : "Perdeye yakın."} ${s.sd > 0.5 ? "Ses dalgalanıyor: hava akışını sabitle." : ""}</div>`;
+        <div><span class="label">Yayılım</span>${num(s.sd, 2)} koma</div>${toneKv(tq)}</div>
+        <div class="muted">${Math.abs(s.mean) > 0.5 ? (s.mean > 0 ? "Tiz çalıyorsun; dudak baskısını azalt ya da biraz daha pes düşün." : "Pes çalıyorsun; hava desteğini artır.") : "Perdeye yakın."} ${s.sd > 0.5 ? "Ses dalgalanıyor: hava akışını sabitle." : ""} ${toneTips(tq)}</div>`;
       run = null;
     }
     return {
@@ -466,9 +474,13 @@
         if(!run || !r.inRange) return;
         if(run.w === null) run.w = r.written;
         if(r.written !== run.w){ if(run.start && t - run.lastOk > 400) end(t); return; }
-        if(!run.start){ run.start = t; $("ltwhat").textContent = "Tut: " + label(run.w); }
+        if(!run.start){
+          run.start = t; $("ltwhat").textContent = "Tut: " + label(run.w);
+          // Hedef akort bağlamına göre (Akort ekranında makam seçiliyse o makamın perdesi)
+          const p = analyze(perdeFreq(run.w, T), T).perde; run.target = p ? p.comma : (run.w-67)*53/12;
+        }
         run.lastOk = t;
-        const target = nearestPerde((run.w-67)*53/12), dev = r.comma - (target ? target.comma : (run.w-67)*53/12);
+        const dev = r.comma - run.target;
         run.devs.push(dev);
         const el = (t - run.start)/1000;
         $("ltclock").innerHTML = num(el) + ` <em>/ ${dur} sn</em>`;
@@ -476,6 +488,7 @@
         $("ltdev").textContent = "sapma: " + sgn(dev) + " koma";
         if(el >= dur) end(t);
       },
+      raw(d){ if(run && run.start) run.tq.push({ rms:d.rms, clarity:d.clarity }); },
       silence(t){ if(run && run.start && t - run.lastOk > 400) end(t); },
       leave(){ run = null; }
     };
@@ -914,6 +927,13 @@
     return { enter: render };
   })();
 
+  // ======== Ritim, Kulak, Seyir (trainers.js) ========
+  const tctx = { SK, $, store, nn, num, sgn, esc, sleep, hit, commaFreq, mkFreq, needMic,
+    droneOn: c => { setDrone(c); if(!drone) startDrone(); } };
+  modules.rhythm = TRAINERS.rhythm(tctx);
+  modules.ear = TRAINERS.ear(tctx);
+  modules.seyir = TRAINERS.seyir(tctx);
+
   // ======== 0. Dersler ========
   modules.lessons = (() => {
     const P = $("pp-lessons");
@@ -980,6 +1000,10 @@
         case "scale": return "%" + Math.round(r.v*100);
         case "mimic": return r.v + " nota";
         case "vibrato": return num(r.v) + " sn";
+        case "read": return L("okundu", "read");
+        case "rhythm": case "seyir": return r.v + L(" puan", " points");
+        case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
+        case "ear": return r.v + "/" + st.n;
       }
       return "";
     }
@@ -1107,6 +1131,7 @@
 
     const q = (stage, s) => stage.querySelector(s);
     const RUN = {
+      ...Object.fromEntries(Object.entries(TRAINER_STEPS).map(([k, fn]) => [k, (st, stage, done) => fn(st, stage, done, tctx)])),
       listen(st, stage, done){
         const items = itemsOf(st);
         stage.innerHTML = `<div class="chiprow">${items.map(([w], k) => `<span class="pchip"><b>${st.commas ? perdeName(st.commas[k]) : nn(w)}</b><small>${st.commas ? nn(w) : perdeOf(w)}</small></span>`).join("")}</div>`;
@@ -1120,27 +1145,28 @@
         const w = st.note, tp = nearestPerde((w-67)*53/12);
         const target = st.comma != null ? tgt(lessonMk(st), st.comma) : tp ? tp.comma : (w-67)*53/12;
         const name = nn(w) + " · " + perdeName(target);
-        let start = null, devs = [], lastOk = 0;
+        let start = null, devs = [], lastOk = 0, tqf = [];
         stage.innerHTML = `<div class="label">Çal ve tut: ${esc(name)}</div>
           <div class="ltclock lhc">0,0 <em>/ ${st.sec} sn</em></div>
           <div class="pbarfill"><i class="lhf"></i></div><div class="muted lhd">sapma: —</div>`;
         SK.showNote(w);
         function end(t){
           const durMs = start ? t - start : 0;
-          if(!start || devs.length < 5){ start = null; devs = []; q(stage, ".lhd").textContent = "Nota tutulamadı, yeniden dene."; return; }
-          const s = longToneScore(devs, durMs, st.sec*1000);
+          if(!start || devs.length < 5){ start = null; devs = []; tqf = []; q(stage, ".lhd").textContent = "Nota tutulamadı, yeniden dene."; return; }
+          const s = longToneScore(devs, durMs, st.sec*1000), tq = toneQuality(tqf);
           stage.innerHTML = `<div class="result"><div class="big">${s.score}</div><div>puan · ${esc(name)}</div></div>
             <div class="kv"><div><span class="label">Süre</span>${num(durMs/1000)} sn</div>
             <div><span class="label">Ortalama sapma</span>${sgn(s.mean)} koma</div>
-            <div><span class="label">Yayılım</span>${num(s.sd, 2)} koma</div></div>
-            <div class="muted">${Math.abs(s.mean) > 0.5 ? (s.mean > 0 ? "Tiz çalıyorsun; dudak baskısını azalt ya da biraz daha pes düşün." : "Pes çalıyorsun; hava desteğini artır.") : "Perdeye yakın."} ${s.sd > 0.5 ? "Ses dalgalanıyor: hava akışını sabitle." : ""}</div>`;
-          done({ v:s.score });
+            <div><span class="label">Yayılım</span>${num(s.sd, 2)} koma</div>${toneKv(tq)}</div>
+            <div class="muted">${Math.abs(s.mean) > 0.5 ? (s.mean > 0 ? "Tiz çalıyorsun; dudak baskısını azalt ya da biraz daha pes düşün." : "Pes çalıyorsun; hava desteğini artır.") : "Perdeye yakın."} ${s.sd > 0.5 ? "Ses dalgalanıyor: hava akışını sabitle." : ""} ${toneTips(tq)}</div>
+            ${st.quality && tq && tq.clarity < st.quality ? `<div class="fb bad">${L("Ses temizliği en az %", "Tone clarity must be at least ")}${st.quality}${L(" olmalı.", "%.")}</div>` : ""}`;
+          done({ v:s.score, q: tq ? tq.clarity : 0 });
         }
         return {
           note(r, t){
             if(!r.inRange) return;
             if(r.written !== w){ if(start && t - lastOk > 400) end(t); return; }
-            if(!start){ start = t; devs = []; }
+            if(!start){ start = t; devs = []; tqf = []; }
             lastOk = t;
             const dev = r.comma - target; devs.push(dev);
             const el = (t - start)/1000;
@@ -1149,6 +1175,7 @@
             q(stage, ".lhd").textContent = "sapma: " + sgn(dev) + " koma";
             if(el >= st.sec) end(t);
           },
+          raw(d){ if(start) tqf.push({ rms:d.rms, clarity:d.clarity }); },
           silence(t){ if(start && t - lastOk > 400) end(t); }
         };
       },
@@ -1213,10 +1240,11 @@
           const w = quizPickFrom(st.notes, stats, Math.random, last);
           last = w; cq = { w, t0: performance.now(), done:false }; hold.reset();
           stage.innerHTML = `<div class="qcount">Soru ${k+1}/${st.n} · ${right} doğru</div>`;
-          if(st.mode === "play"){
+          if(st.mode === "play" || st.mode === "staff"){
             const box = document.createElement("div"); box.className = "qplay";
             const sv = staffSvg(); SK.drawStaffInto(sv, w);
-            box.innerHTML = `<div><div class="label">Bu notayı çal</div><div class="qname">${nn(w)} <em>yazılı</em></div><div class="muted">${perdeOf(w)}</div></div>`;
+            box.innerHTML = st.mode === "staff" ? `<div><div class="label">${L("Dizekteki notayı çal", "Play the note on the staff")}</div><div class="qname">?</div></div>`
+              : `<div><div class="label">Bu notayı çal</div><div class="qname">${nn(w)} <em>yazılı</em></div><div class="muted">${perdeOf(w)}</div></div>`;
             box.appendChild(sv); stage.appendChild(box);
           }else{
             const box = document.createElement("div"); box.className = "qfind";

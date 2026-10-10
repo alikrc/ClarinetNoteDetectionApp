@@ -480,3 +480,14 @@ body[data-view="settings"] .page{max-width:680px}
 .rvv .rvc{flex:1 1 220px}
 .rvmk{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
 @media(max-width:520px){.rvitem{grid-template-columns:96px minmax(0,1fr)}.rvitem svg.minichart{width:96px}}
+
+/* Ritim, dinamik, seyir */
+svg.rhsvg{width:100%;height:auto;display:block;margin:8px 0;background:var(--surface);border-radius:8px}
+.rhaxis{stroke:var(--line);stroke-width:1}
+.rhexp{stroke:var(--muted);stroke-width:1.5}
+.rhgood{fill:var(--ok)} .rhmid{fill:#D9A021} .rhbad{fill:var(--accent)} .rhextra{fill:var(--muted);opacity:.6}
+canvas.dyncv{width:100%;max-width:300px;height:60px;display:block;background:var(--surface);border-radius:8px;margin:6px 0}
+.sybars .barcol i.durak{background:var(--ink)} .sybars .barcol i.guclu{background:var(--accent)}
+.sybars .barcol small{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9.5px;max-height:70px;overflow:hidden}
+.sybars{height:170px}
+#eamode{flex-wrap:wrap}

@@ -678,6 +678,23 @@
     chip.textContent = "sessiz";
     if(trace.length && trace[trace.length-1].comma!==null) trace.push({t:performance.now(), comma:null});
   }
+  // Ritim için nota başının kesin zamanı: son ~80 ms'yi 128 örneklik bloklara bölüp enerjinin
+  // en son hızla yükseldiği bloğu bulur (40 ms'lik ölçüm aralığından bağımsız, ~3 ms çözünürlük).
+  const RISE_BLK = 128;
+  function riseTime(now){
+    const sr = ctx.sampleRate, nb = Math.min(Math.floor(buf.length/RISE_BLK), Math.ceil(0.08*sr/RISE_BLK));
+    const e = new Float32Array(nb);
+    for(let b=0;b<nb;b++){
+      let s = 0; const o = buf.length - (nb-b)*RISE_BLK;
+      for(let i=0;i<RISE_BLK;i++) s += buf[o+i]*buf[o+i];
+      e[b] = Math.sqrt(s/RISE_BLK);
+    }
+    const top = Math.max(...e);
+    if(top < 1e-4) return null;
+    for(let b=nb-1;b>0;b--)
+      if(e[b] >= 0.5*top && e[b-1] < 0.3*top) return now - (nb-b)*RISE_BLK/sr*1000;
+    return null;
+  }
   // Analiz ekran yenilemesinden bağımsız, 40 ms'de bir çalışır (zaman damgaları düzenli kalsın);
   // iz çizimi ekran yenilemesine bırakılır.
   function drawSoon(){
@@ -710,7 +727,7 @@
     lv.style.width = dbPos(d.rms) + "%";
     lv.classList.toggle("hot", d.rms >= minRms);
     // Her ölçümde seviye ve ses netliği (ritim, ses kalitesi ve dinamik alıştırmaları için)
-    const lev = { t:now, rms:d.rms, on: d.freq > 0, clarity:d.clarity, freq:d.freq };
+    const lev = { t:now, rms:d.rms, on: d.freq > 0, clarity:d.clarity, freq:d.freq, tOn: riseTime(now) };
     levelTaps.forEach(fn => fn(lev));
     emit("level", lev);
     if(d.freq > 0){

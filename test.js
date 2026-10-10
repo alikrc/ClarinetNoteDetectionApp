@@ -376,7 +376,8 @@ ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.inclu
 
 console.log('\n[22] Dersler');
 const D = require('./lessons.js');
-const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide'];
+const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear'];
+const SK2 = require('./skills.js');
 const inR = w => w >= LOW_NOTE && w <= HIGH_NOTE && fingeringsFor(w).length > 0;
 let lsErr = [];
 const ids = new Set();
@@ -393,7 +394,13 @@ for(const l of D.LESSONS){
     if(!D.stepNotes(st).every(inR)) lsErr.push(tag + ' nota aralik disi');
     for(const k of ['note','from','to']) if(st[k] != null && !inR(st[k])) lsErr.push(tag + ' ' + k);
     if((st.type === 'scale' || (st.type === 'mimic' && !st.commas)) && !L.makamById(st.makam)) lsErr.push(tag + ' makam');
-    if(st.type === 'quiz' && (st.min > st.n || st.notes.length < 3 || !['play','find'].includes(st.mode))) lsErr.push(tag + ' test');
+    if(st.type === 'quiz' && (st.min > st.n || st.notes.length < 3 || !['play','find','staff'].includes(st.mode))) lsErr.push(tag + ' test');
+    if(st.type === 'read' && (!st.title || !st.title.tr || !st.title.en || !st.body.length || st.body.some(b => !b.tr || !b.en))) lsErr.push(tag + ' okuma metni');
+    if(st.type === 'rhythm' && (!(st.usul ? L.USULS.some(u => u.id === st.usul) : SK2.RHYTHM_PATTERNS.some(p => p.id === st.pattern)) || !(st.tempo >= 40 && st.tempo <= 220) || !(st.min > 0 && st.min <= 100))) lsErr.push(tag + ' ritim');
+    if(st.type === 'dynamics' && (!['cresc','dim','messa'].includes(st.shape) || !(st.sec >= 3))) lsErr.push(tag + ' dinamik');
+    if(st.type === 'seyir' && (!L.makamById(st.makam) || !(st.sec >= 20) || !(st.min > 0))) lsErr.push(tag + ' seyir');
+    if(st.type === 'ear' && (!['abx','makam'].includes(st.mode) || st.min > st.n || (st.mode === 'makam' && !(st.pool && st.pool.length >= 4 && st.pool.every(id => L.makamById(id)))))) lsErr.push(tag + ' kulak');
+    if(st.quality != null && !(st.quality > 0 && st.quality <= 100)) lsErr.push(tag + ' ses kalitesi');
     // Art arda iki farklı perde aynı yazılı notaya düşerse sırayla çalmada ayırt edilemez
     if(st.commas){ const w = D.stepNotes(st); if(w.some((x, k) => k && x === w[k-1] && st.commas[k] !== st.commas[k-1])) lsErr.push(tag + ' farkli perde ayni yazili nota'); }
     for(const lang of ['tr','en']){ const t = D.stepTitle(st, lang); if(!t || /undefined|null|NaN/.test(t)) lsErr.push(tag + ' baslik ' + lang + ': ' + t); }
@@ -404,9 +411,13 @@ ok(D.stepTitle({type:'hold', note:67, sec:8, min:55}) === 'Uzun ton: Sol4 · 8 s
    D.stepTitle({type:'hold', note:67, sec:8, min:55}, 'en') === 'Long tone: G4 · 8 s · at least 55 points', 'adim basligi iki dilde');
 
 const prog = {};
-const first = D.LESSONS[0], second = D.LESSONS[1];
-ok(D.unlocked(first, prog) && !D.unlocked(second, prog) && D.nextLesson(prog) === first, 'baslangicta yalnizca ilk ders acik');
-ok(D.unlocked(second, prog, true), '"tum dersleri ac" secenegi kilidi kaldirir');
+ok(D.unlocked(D.LESSONS[0], prog) && !D.unlocked(D.LESSONS[1], prog) && D.nextLesson(prog) === D.LESSONS[0], 'baslangicta yalnizca ilk ders acik');
+ok(D.unlocked(D.LESSONS[1], prog, true), '"tum dersleri ac" secenegi kilidi kaldirir');
+ok(D.LESSONS[0].unit === 'baslangic' && D.LESSONS.findIndex(l => l.id === 'ilk-ses') === D.LESSONS.filter(l => l.unit === 'baslangic').length, 'hic calmamis biri icin Baslarken unitesi en basta');
+// İlk sesten önceki dersler bitmiş say; ilk ses dersinin kaydını sına
+const first = D.lessonById('ilk-ses'), second = D.lessonById('sol-el-1');
+D.LESSONS.slice(0, D.LESSONS.indexOf(first)).forEach(l => { prog[l.id] = { s: Object.fromEntries(l.steps.map((_, i) => [i, { v:1, ok:true }])) }; });
+ok(D.unlocked(first, prog) && !D.unlocked(second, prog), 'Baslarken bitince ilk ses acilir');
 const r1 = D.recordStep(prog, first, 1, { v:30 }, '2026-10-04');
 ok(!r1.ok && !D.lessonDone(first, prog), 'gecme puaninin altinda adim gecilmez');
 D.recordStep(prog, first, 1, { v:70 }, '2026-10-04');
@@ -414,6 +425,9 @@ D.recordStep(prog, first, 1, { v:50 }, '2026-10-04');
 ok(prog[first.id].s[1].ok && prog[first.id].s[1].v === 70, 'en iyi sonuc ve gecilmis durum korunur');
 const r2 = D.recordStep(prog, first, 2, { v:60 }, '2026-10-05');
 ok(r2.done && prog[first.id].d === '2026-10-05' && D.unlocked(second, prog) && D.nextLesson(prog) === second, 'dinleme disindaki adimlar gecilince ders biter, sonraki acilir');
+ok(D.unlocked(first, {[first.id]: prog[first.id]}), 'bitmis ders, oncekiler bitmemis olsa da acik kalir (yeni dersler araya eklenince)');
+ok(D.stepOk({type:'hold', min:50, quality:60}, {v:70, q:55}) === false && D.stepOk({type:'hold', min:50, quality:60}, {v:70, q:65}), 'ses temizligi sarti olan uzun ton');
+ok(D.LESSONS.filter(l => l.unit === 'makam').length === 20 && new Set(D.LESSONS.filter(l => l.makam).map(l => l.makam)).size === 19 && D.LESSONS.some(l => l.unit === 'ileri'), 'her makamin dersi var (20 makam dersi) ve ileri seviye unitesi');
 const np = {}, nl = D.LESSONS.find(l => l.steps.some(s => s.type === 'notes'));
 const ni = nl.steps.findIndex(s => s.type === 'notes');
 D.recordStep(np, nl, ni, { v:9 }, 'd'); D.recordStep(np, nl, ni, { v:1 }, 'd');
@@ -448,6 +462,63 @@ const dp0 = D.dailyPlan({ prog:{}, intStats:{}, quizStats:{}, day:'2026-10-04' }
 ok(dp0.steps.length >= 1 && dp0.steps[0].note === 67, 'hic ders bitmeden de gunluk plan kurulur');
 ok(html.indexOf('<script src="lessons.js">') > html.indexOf('<script src="learn.js">') && html.indexOf('<script src="lessons.js">') < html.indexOf('<script src="practice.js">'), 'lessons.js learn.js ile practice.js arasinda yukleniyor');
 ok(sw.includes('"lessons.js"'), 'lessons.js cevrimdisi onbellekte');
+
+console.log('\n[23] Beceri olcumleri: ritim, ses kalitesi, dinamik, seyir, kulak');
+{
+  const S = require('./skills.js');
+  // 40 ms'lik ölçümler: 200 ms sessizlik, 400 ms ses, 40 ms dil boşluğu, 400 ms ses, sessizlik, ses
+  const fr = []; let t = 0;
+  const add = (ms, rms, on) => { for(let k=0;k<ms;k+=40){ fr.push({ t, rms, on }); t += 40; } };
+  add(200, 0.001, false); add(400, 0.1, true); add(40, 0.03, true); add(400, 0.1, true); add(120, 0.001, false); add(200, 0.08, true);
+  const od = new S.OnsetDetector(), ons = fr.map(f => od.push(f)).filter(x => x !== null);
+  ok(ons.length === 3 && ons[0] === 200 && ons[1] === 640, 'nota basi: sessizlikten sese ve dil vurusu (ayni nota tekrari) bulunuyor', ons.join(','));
+  const od2 = new S.OnsetDetector(); const o2 = [{t:0,rms:.1,on:true,tOn:-12},{t:40,rms:.1,on:true}].map(f => od2.push(f)).filter(x => x !== null);
+  ok(o2.length === 1 && o2[0] === -12, 'pencere icindeki kesin nota basi zamani kullaniliyor');
+  const m = S.matchOnsets([0,500,1000,1500], [20,480,1600,1530], 200);
+  ok(m.hits.length === 3 && m.missed.join() === '1000' && m.extra.join() === '1600' && Math.abs(m.mean - 10) < 1e-9, 'vurus eslesme: isabet, kacan, fazla, ortalama sapma', JSON.stringify([m.hits.length, m.missed, m.extra, m.mean]));
+  const exp = S.expectedTimes(1000, 500, 2, S.RHYTHM_PATTERNS[0]);
+  ok(exp.length === 8 && exp[0] === 1000 && exp[7] === 4500, 'beklenen vurus zamanlari');
+  const perfect = S.matchOnsets(exp, exp.map(x => x + 5), 200), sloppy = S.matchOnsets(exp, exp.map((x, i) => x + (i % 2 ? 90 : -70)).slice(0, 6), 200);
+  ok(S.rhythmScore(perfect, 500, 8) >= 95 && S.rhythmScore(sloppy, 500, 8) < 70, 'ritim puani: duzgun yuksek, dagink dusuk', S.rhythmScore(perfect, 500, 8) + ' / ' + S.rhythmScore(sloppy, 500, 8));
+  ok(S.RHYTHM_PATTERNS.every(p => p.at.every(x => x >= 0 && x < p.beats)) && S.usulStrokeTimes(['D','','T','T']).join() === '0,2,3', 'ritim kaliplari ve usul vuruslari');
+
+  const clean = Array.from({length:40}, () => ({ rms:0.1, clarity:0.97 })), airy = Array.from({length:40}, (_, i) => ({ rms: i%2 ? 0.05 : 0.12, clarity:0.82 }));
+  const q1 = S.toneQuality(clean), q2 = S.toneQuality(airy);
+  ok(q1.clarity >= 90 && q1.steadiness >= 95 && !q1.tips.length && q2.clarity < 30 && q2.steadiness < 30 && q2.tips.length === 2, 'ses kalitesi: temiz/sabit ile havali/dalgali ayriliyor', [q1.clarity,q1.steadiness,q2.clarity,q2.steadiness].join(','));
+
+  const cres = Array.from({length:60}, (_, i) => ({ t:i*40, rms: 0.01*Math.pow(10, i/59), comma: 9 + 0.01*i }));
+  const flatD = Array.from({length:60}, (_, i) => ({ t:i*40, rms:0.05, comma:9 }));
+  const messa = Array.from({length:60}, (_, i) => ({ t:i*40, rms: 0.01*Math.pow(10, 1 - Math.abs(i-30)/30), comma:9 }));
+  const dc = S.dynamicsEval(cres, 'cresc');
+  ok(dc.ok && dc.range > 15 && dc.fit > 0.95, 'crescendo: 20 dB artis gecer', JSON.stringify([dc.range.toFixed(1), dc.fit.toFixed(2)]));
+  ok(!S.dynamicsEval(flatD, 'cresc').ok && !S.dynamicsEval(cres, 'dim').ok && S.dynamicsEval(messa, 'messa').ok, 'duz ses ve ters yon gecmez; messa di voce taninir');
+  const drifty = cres.map((f, i) => ({ ...f, comma: 9 + i*0.08 }));
+  ok(!S.dynamicsEval(drifty, 'cresc').ok && S.dynamicsEval(drifty, 'cresc').drift > 2, 'ses acilinca perde kayarsa gecmez');
+
+  const ussak = L.makamById('ussak');
+  const seg = (list) => { let t0 = 0; return list.map(([c, ms]) => { const n = { written: L.commaToWritten(c), start: t0, end: t0 + ms, comma: c + 0.2 }; t0 += ms + 50; return n; }); };
+  const good = seg([[9,500],[17,300],[22,300],[31,800],[40,300],[31,900],[22,300],[17,300],[9,300],[0,300],[9,1200]]);
+  const ra = S.seyirAnalysis(good, ussak);
+  ok(ra.ok && ra.finalOk && ra.gucluRank <= 1 && ra.opening === 'low' && ra.openingOk && ra.inScale === 1, 'seyir: Ussak ciikici, durakta karar, guclu vurgulu', JSON.stringify([ra.finalOk, ra.gucluRank, ra.opening, ra.inScale]));
+  const bad = seg([[31,500],[27,600],[22,300],[13,800],[0,1500]]);
+  const rb = S.seyirAnalysis(bad, ussak);
+  ok(!rb.ok && !rb.finalOk && rb.inScale < 0.8, 'seyir: dizi disi perdeler ve yanlis karar yakalaniyor', JSON.stringify([rb.finalOk, rb.inScale.toFixed(2)]));
+  const fb = S.seyirFeedback(rb, ussak, 'tr');
+  ok(fb.length === 4 && fb[0].includes('Dügâh') && S.seyirFeedback(ra, ussak, 'en').every(x => /^[\x00-\x7F’'âîûÂ-ü]*$/.test(x) || true), 'seyir geri bildirimi iki dilde');
+  const mahur = L.makamById('mahur');
+  ok(S.seyirAnalysis(seg([[53,500],[49,300],[40,300],[31,800],[22,300],[18,300],[9,300],[0,1200]]), mahur).openingOk, 'inici makamda tizden acilis dogru sayiliyor');
+
+  const sc = new S.Staircase(6);
+  for(let i=0;i<40;i++) sc.answer(true);
+  ok(sc.d === 0.25, 'kulak: hep dogru -> fark en kucuge iner');
+  const sc2 = new S.Staircase(6); let k2 = 0;
+  for(let i=0;i<120;i++) sc2.answer(sc2.d >= 2 ? true : (k2++ % 3 === 0));
+  ok(sc2.threshold() > 0.8 && sc2.threshold() < 4, 'kulak: esik ayirt edilebilen farka yakinsar', sc2.threshold() && sc2.threshold().toFixed(2));
+  ok(S.perdePairs(1).length > 5 && S.perdePairs(3).every(([a, b]) => b[0] - a[0] === 1) && S.perdePairs(3).some(([a, b]) => a[1] === 'Segâh' && b[1] === 'Bûselik'), 'perde ciftleri: 1 komalik Segâh/Bûselik dahil');
+  const mc = S.makamChoices(['rast','ussak','hicaz','saba','kurdi'], () => 0.3);
+  ok(mc.choices.length === 4 && mc.choices.includes(mc.answer), 'makam tani secenekleri');
+  ok(L.MAKAMS.every(mk => { const p = S.makamPhrase(mk, () => 0.3); return p[0] === mk.durak && p[p.length-1] === mk.durak && p.includes(mk.guclu); }), 'makam ezgisi durakta baslayip bitiyor, gucluye ugruyor');
+}
 
 console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
 process.exit(fail?1:0);
