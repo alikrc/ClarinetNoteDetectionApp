@@ -799,7 +799,9 @@
   wide.addEventListener("change", () => { if(wide.matches && view === "finger") go("tune"); else drawTrace(); });
   // Açılışta son kullanılan görünüme dön (#nota= bağlantısı akortu açar)
   history.replaceState({view:"tune"}, "");
-  const startView = /nota=/.test(location.hash) ? "tune" : store.get("view", "tune");
+  // Ana ekran kısayolları ?view=practice&tab=rhythm gibi açar (manifest shortcuts)
+  const qs = new URLSearchParams(location.search);
+  const startView = /nota=/.test(location.hash) ? "tune" : VIEWS.includes(qs.get("view")) ? qs.get("view") : store.get("view", "tune");
   if(startView !== "tune") go(startView);
 
   // ---- Çalışma modülleri (practice.js) için arayüz ----

@@ -1395,5 +1395,6 @@
     };
   })();
 
-  selectTab(TABS.some(([t]) => t === store.get("ptab")) ? store.get("ptab") : "lessons");
+  const qtab = new URLSearchParams(location.search).get("tab");
+  selectTab(TABS.some(([t]) => t === qtab) ? qtab : TABS.some(([t]) => t === store.get("ptab")) ? store.get("ptab") : "lessons");
 })();

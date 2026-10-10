@@ -2,7 +2,7 @@
   "name": "Sol Klarnet — Akort, Parmak, Makam",
   "short_name": "Sol Klarnet",
   "id": "./",
-  "description": "Türk Sol klarneti için akort, Albert sistem parmak pozisyonları ve makam alıştırmaları.",
+  "description": "Türk Sol klarneti için akort, Albert sistem parmak pozisyonları, makam, ritim ve kulak eğitimi: sıfırdan ileri seviyeye dersler.",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",
@@ -37,6 +37,56 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Akort",
+      "short_name": "Akort",
+      "url": "./?view=tune",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Dersler",
+      "short_name": "Dersler",
+      "url": "./?view=practice&tab=lessons",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Ritim",
+      "short_name": "Ritim",
+      "url": "./?view=practice&tab=rhythm",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Eserler",
+      "short_name": "Eserler",
+      "url": "./?view=practice&tab=piece",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
