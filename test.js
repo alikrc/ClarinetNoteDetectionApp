@@ -521,6 +521,21 @@ console.log('\n[23] Beceri olcumleri: ritim, ses kalitesi, dinamik, seyir, kulak
   ok(L.MAKAMS.every(mk => { const p = S.makamPhrase(mk, () => 0.3); return p[0] === mk.durak && p[p.length-1] === mk.durak && p.includes(mk.guclu); }), 'makam ezgisi durakta baslayip bitiyor, gucluye ugruyor');
 }
 
+console.log('\n[25] Cevrimdisi ve paket: sayfanin kullandigi her dosya onbellekte ve Android paketinde');
+{
+  const idx = rd('index.html'), swSrc = rd('sw.js'), build = rd('scripts/build-web.js');
+  const used = [...idx.matchAll(/(?:src|href)="([^"#:]+)"/g)].map(m => m[1]).filter(x => !/^https?:/.test(x));
+  const css = rd('fonts/fonts.css'), fontsUsed = [...css.matchAll(/url\(([^)]+)\)/g)].map(m => 'fonts/' + m[1]);
+  const shell = JSON.parse('[' + swSrc.split('const SHELL = [')[1].split('];')[0] + ']');
+  const files = JSON.parse('[' + build.split('const FILES = [')[1].split('];')[0] + ']'), dirs = JSON.parse('[' + build.split('const DIRS = [')[1].split('];')[0] + ']');
+  const inBuild = x => files.includes(x) || dirs.some(d => x.startsWith(d + '/'));
+  const missSw = [...used, ...fontsUsed].filter(x => !shell.includes(x)), missBuild = [...used, ...fontsUsed].filter(x => !inBuild(x));
+  ok(!missSw.length && !missBuild.length, 'index.html ve fonts.css dosyalari SW onbelleginde ve www/ paketinde', JSON.stringify({ missSw, missBuild }));
+  ok(!/googleapis|gstatic/.test(idx + swSrc), 'dis font kaynagi yok (internetsiz ilk acilis)');
+  ok([...used, ...fontsUsed].every(x => fs.existsSync(require('path').join(__dirname, x))), 'baglanan her dosya depoda var');
+  ok(!/android.permission.INTERNET/.test(rd('android/app/src/main/AndroidManifest.xml')), 'Android uygulamasi internet izni istemiyor');
+}
+
 console.log('\n[24] Repertuvar: nota metni, koma isaretleri, MusicXML, tempolu calma');
 const R = require('./repertoire.js');
 (async () => {

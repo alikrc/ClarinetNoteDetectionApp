@@ -37,7 +37,7 @@
 
     <!-- Permissions -->
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- İnternet izni yok: bütün dosyalar (fontlar dahil) uygulamanın içinde -->
     <!-- Akort ve değerlendirme için mikrofon; ses cihazda işlenir, kaydedilmez ya da gönderilmez -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
