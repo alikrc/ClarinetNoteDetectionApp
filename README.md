@@ -21,21 +21,26 @@ Mikrofondan çalınan sesi dinler; ses yalnızca cihazda işlenir, uygulama inte
 
 ## Çalışma bölümü
 
+Sekmeler beş gruptadır: **Dersler**, **Teknik** (Parmak testi, Uzun ton, Ritim), **Makam** (Dizi, Taklit, Seyir,
+Kulak), **Eserler** (Etüt ve eserler, Kayıt) ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
+alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma açılır.
+
 | Sekme | İçerik |
 |---|---|
 | Dersler | 6 ünitede 46 ders: Başlarken (klarneti tanı, duruş/nefes, nota okuma, ritim), Temeller, Register ve klarino, Teknik ve üslup (uzun ton, register geçişi, dil vuruşu, dinamik, ses kalitesi, glissando, vibrato, usuller, kulak), 20 makam dersi (19 makam), İleri seviye (taksim, ileri kulak, iç tempo). **Bugünün çalışması** her gün bitirilen derslerden yeniden kurulur |
 | Parmak testi | Çal, Bul ve Oku (dizekten okuyup çal) modları; zorlanılan notalar daha sık sorulur |
 | Uzun ton | Sapma, yayılım, **ses temizliği** ve **ses gücü dengesi**; nota başına rekor |
-| Makam | 19 makamın dizisi, seyri, durak/güçlü/yeden; çıkış-iniş alıştırması |
+| Dizi (Makam) | 19 makamın dizisi, seyri, durak/güçlü/yeden; çıkış-iniş alıştırması |
 | Taklit | Makam dizisinden ezgi çalar, aynısını çal; ezgi uzar |
 | Ritim | Kalıplar ve usuller (Sofyan, Semâî, Düyek, Aksak, Ağır Aksak, Curcuna); erken/geç ve tutarlılık; metronomsuz iç tempo; hoparlörle ya da çalarak gecikme ayarı |
 | Kulak | Tiz mi pes mi (uyarlanır merdivenle koma eşiği), perde ayırt (ABX, 1 komaya kadar), makam tanı |
 | Seyir | Serbest çalma / taksim: perdelerde süre, dizi dışı, güçlü vurgusu, açılış, karar |
-| Eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 14 özgün etüt; kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip ve metronomla tempolu çalma (perde + zamanlama) |
+| Etüt ve eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 14 özgün etüt; kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip ve metronomla tempolu çalma (perde + zamanlama) |
 | Kayıt | Kayıt, nota dökümü, kaydı dosya olarak paylaşma |
 | İlerleme | Seri, günlük hedef, son 14 gün, test, uzun ton, entonasyon, ritim, kulak eşiği, seyir, eserler |
 
-Usullü metronom ve durak sesi (dron) her sekmede kullanılabilir. Dron hoparlörden çalarken sızıntı düzeyi
+Usullü metronom ve durak sesi (dron) her sekmede üstteki araç çubuğundan tek dokunuşla açılır; ayarları
+(usul, tempo, perde, ses düzeyi) ok düğmesiyle açılan kısımdadır. Dron hoparlörden çalarken sızıntı düzeyi
 izlenir; durağı dronla birlikte çalmak da ölçülür.
 
 ## Ayarlar
@@ -85,7 +90,9 @@ GitHub Actions her push'ta testleri çalıştırır.
 | `lessons.js` | Müfredat (iki dilli), adım başlıkları, geçme koşulları, kilit sırası, günlük plan (tarayıcı + Node) |
 | `skills.js` | Nota başı bulma, ritim, ses kalitesi, dinamik, seyir analizi, kulak eğitimi (tarayıcı + Node) |
 | `repertoire.js` | Süreli nota biçimi, AEU koma işaretleri, MusicXML, tempolu çalma değerlendirmesi, etütler (tarayıcı + Node) |
-| `practice.js` | Çalışma bölümü: dersler, test, uzun ton, makam, taklit, kayıt, ilerleme |
+| `practice.js` | Çalışma bölümünün kabuğu: sekme menüsü, metronom ve dron, sürekli ölçümler, sekmelere verilen ortak yardımcılar |
+| `drills.js` | Parmak testi, Uzun ton, Dizi (makam), Taklit, Kayıt ve İlerleme sekmeleri |
+| `lessonview.js` | Dersler sekmesi: ders listesi, ders sayfası ve adım çalıştırıcıları |
 | `trainers.js`, `pieces.js` | Ritim, Kulak, Seyir ve Eserler sekmeleri, yeni ders adımları |
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |
 | `i18n.js` | Tema ve dil; yeni metinler `L("Türkçe", "English")` ile, eskiler sözlükte |

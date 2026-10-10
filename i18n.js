@@ -147,8 +147,8 @@ const EXACT = {
   "Parmak pozisyonunu göster": "Show fingering", "Nota şeridi": "Note strip", "Mikrofon": "Mic", "Çalınan perde ve sapma": "Played perde and deviation", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",
   "Parmak testi": "Fingering quiz", "Uzun ton": "Long tone", "Makam": "Makam", "Taklit": "Echo", "Eser takibi": "Melody follow",
   "Kayıt": "Recording", "İlerleme": "Progress",
-  "Usullü metronom": "Usul metronome", "Usul": "Usul", "Tempo": "Tempo", "vuruş/dk": "beats/min", "Başlat": "Start",
-  "Durak sesi (dron)": "Tonic drone", "Dron perdesi": "Drone perde", "Dron ses düzeyi": "Drone volume", "Aç": "On", "Kapat": "Off",
+  "Usul": "Usul", "Tempo": "Tempo", "vuruş/dk": "beats/min", "Başlat": "Start",
+  "Dron perdesi": "Drone perde", "Dron ses düzeyi": "Drone volume", "Aç": "On", "Kapat": "Off",
   "Kulaklık önerilir. Dron açıkken dron perdesiyle aynı ses (oktavı dahil) algılanmaz.": "Headphones recommended. While the drone is on, its own pitch (and octaves) is not detected.",
   // Parmak testi
   "Ezberini sına:": "Test your memory:", "Çal": "Play", "Bul": "Identify",
@@ -302,7 +302,6 @@ const PATTERNS = [
     (m, p, d, q, o) => p + ": " + d + " commas — " + temp[q] + (o ? ". You played closer to " + o + "." : "")],
   [/^perde temiz \(±1 koma\) · ortalama sapma (\S+) koma$/, "perdes clean (±1 comma) · mean deviation $1 commas"],
   [/^(\S+) çalıyorsun; beklenen (.+) \(yazılı (\S+)\)\.$/, "You're playing $1; expected $2 (written $3)."],
-  [/^Makam: (.+) \(Makam sekmesinden değiştir\)$/, "Makam: $1 (change it in the Makam tab)"],
   [/^Uzunluk (\d+) · seri (\d+) · rekor (\d+)$/, "Length $1 · streak $2 · best $3"],
   [/^(\S+) çaldın; beklenen (.+) \(yazılı (\S+)\)\. Yeni ezgi geliyor\.$/, "You played $1; expected $2 (written $3). New phrase coming."],
   [/^(★ )?(.+) — (çıkış ve iniş|üçlü atlamalar) \((\d+) nota\)$/, (m, s, n, k, c) => (s || "") + n + " — " + (k === "üçlü atlamalar" ? "skips in thirds" : "up and down") + " (" + c + " notes)"],
