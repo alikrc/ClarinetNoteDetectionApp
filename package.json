@@ -14,7 +14,8 @@
     "android:apk": "npm run android:sync && cd android && gradlew assembleDebug",
     "android:bundle": "npm run android:sync && cd android && gradlew bundleRelease",
     "ios:sync": "npm run build:web && npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "ios:open": "npx cap open ios",
+    "audio-check": "node scripts/audio-check.js"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",
