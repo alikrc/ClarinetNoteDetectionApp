@@ -1,5 +1,8 @@
 # Gerçek klarnet kayıtları
 
+`iowa/` klasöründe Iowa Üniversitesi'nin serbest Si♭ klarnet kayıtları var (139 nota, pp/mf/ff); `npm test` bunları
+da denetler. Ayrıntı: [iowa/README.md](iowa/README.md). Türk Sol klarneti kayıtları hâlâ gerekli.
+
 Perde bulucuyu gerçek Sol klarnet sesiyle denetlemek için kayıtları bu klasöre koy, sonra:
 
 ```bash

@@ -147,6 +147,11 @@ const INSTRUMENTS = [
   { id:"mib", name:"Mi♭ klarnet", t:-3 }
 ];
 const instrumentById = id => INSTRUMENTS.find(x => x.id === id) || INSTRUMENTS[0];
+// Perde bulucunun arama aralığı (Hz): çalgının en pes yazılı notasının biraz altından en tizinin biraz üstüne.
+// Sol klarnette ~100–2050 Hz; Do ve Mi♭ klarnette üst sınır 2,7–3,3 kHz'e çıkar.
+function pitchRange(transpose){
+  return { min: Math.min(100, midiToFreq(LOW_NOTE - transpose) * 0.8), max: Math.max(2100, midiToFreq(HIGH_NOTE - transpose) * 1.1) };
+}
 
 // ---- Makam bağlamı ----
 // Akort ekranında makam seçiliyse çalınan ses yalnızca o makamın perdeleri (tüm oktavları) arasında aranır;
@@ -461,7 +466,7 @@ class NoteStabilizer{
 function noteKey(r){ return r.written + ":" + (r.perde ? r.perde.comma : "-"); }
 
 if(typeof module !== "undefined") module.exports = {
-  SOL_TRANSPOSE, INSTRUMENTS, instrumentById, setTuningContext, getTuningContext, contextPerde, perdeNameAt, mod53, fft, toneMag,
+  SOL_TRANSPOSE, INSTRUMENTS, instrumentById, pitchRange, setTuningContext, getTuningContext, contextPerde, perdeNameAt, mod53, fft, toneMag,
   FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName, staffPos,
   nearestPerde, perdeFreq, parseFingering, keyInfo, fingeringIds, findFingering, describeFingering, analyze,
   sensitivityToRms, detectPitch, NoteStabilizer, noteKey

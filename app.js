@@ -29,6 +29,7 @@
   // Çalgı: yazılı nota = duyulan + T yarım ses (Sol klarnet 5). Değişince sayfa yeniden yüklenir.
   const inst = instrumentById(store.get("inst", "sol"));
   const T = inst.t;
+  const PR = pitchRange(T);                             // perde bulucunun Hz aralığı (çalgıya göre)
 
   const a4In=$("a4"), sensIn=$("sens");
   a4In.value = settings.a4; sensIn.value = settings.sens;
@@ -719,7 +720,7 @@
     // içerdiğinden alt harmonik denetimi kapanır.
     const win = lastFreq > 250 ? buf.subarray(buf.length - 2048) : buf;
     winLen = win.length;
-    const d = detectPitch(win, ctx.sampleRate, 100, 2100, minRms, { subharmonic: !(window.SK && SK.droneActive) });
+    const d = detectPitch(win, ctx.sampleRate, PR.min, PR.max, minRms, { subharmonic: !(window.SK && SK.droneActive) });
     // Dron ya da kayıt dinletilirken o ses nota sayılmasın (practice.js)
     if(d.freq > 0 && window.SK && window.SK.ignore && window.SK.ignore(d.freq, d.rms)) d.freq = -1;
     lastFreq = d.freq;

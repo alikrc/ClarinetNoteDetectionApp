@@ -542,6 +542,22 @@ console.log('\n[25] Cevrimdisi ve paket: sayfanin kullandigi her dosya onbellekt
   ok(rd('ios/App/App/Info.plist').includes('NSMicrophoneUsageDescription'), 'iOS mikrofon izni aciklamasi var');
 }
 
+console.log('\n[26] Gercek klarnet kayitlari (Iowa Universitesi, Si♭ klarnet, pp/mf/ff, Re3–Do7)');
+{
+  const AC = require('./scripts/audio-check.js'), dirI = require('path').join(__dirname, 'testdata', 'iowa');
+  if(fs.existsSync(dirI)){
+    let good = 0, all = 0; const badN = [];
+    for(const f of AC.listFiles(dirI)){
+      const r = AC.checkFile(f, 0);
+      for(const n of r.notes){ all++; if(n.rate >= 0.9) good++; else badN.push(require('path').basename(f) + ' ' + n.exp); }
+      if(r.kind === 'chromatic' && r.segs !== r.want) badN.push(require('path').basename(f) + ' ayirma ' + r.segs + '/' + r.want);
+    }
+    // ff Sol♯6 (MIDI 92) kayıtta ~50 sent pes çalınmış: bilinen istisna (testdata/iowa/README.md)
+    const unexpected = badN.filter(b => b !== 'BbClar.ff.C6B6.aiff 92');
+    ok(all === 139 && unexpected.length === 0, `${all} gercek klarnet notasinin ${good}'i dogru (oktav/onikili hatasi yok)`, unexpected.join(' | '));
+  }else ok(true, 'testdata/iowa yok, atlandi');
+}
+
 console.log('\n[24] Repertuvar: nota metni, koma isaretleri, MusicXML, tempolu calma');
 const R = require('./repertoire.js');
 (async () => {
