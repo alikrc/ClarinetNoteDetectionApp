@@ -274,6 +274,21 @@
     </div>
 
     <div class="sgroup">
+      <span class="label">Çalışma</span>
+      <div class="settings">
+        <div class="srow">
+          <label class="label" for="goalmin">Günlük hedef</label>
+          <span class="tnum"><input id="goalmin" type="number" min="1" max="240" step="5" inputmode="numeric"> <em>dk</em></span>
+        </div>
+        <div class="srow" id="remrow" hidden>
+          <label class="label" for="remon">Günlük hatırlatma</label>
+          <span class="trow"><input type="checkbox" id="remon" role="switch"> <input type="time" id="remtime" value="19:00" aria-label="Hatırlatma saati"></span>
+          <div class="hint" id="remmsg">Her gün bu saatte bir bildirim gelir (birkaç dakika esneyebilir). Bugünkü hedefini tamamladıysan da gelir; seri için iyi bir alışkanlık.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sgroup">
       <span class="label">Verilerim</span>
       <div class="settings">
         <div class="srow">

@@ -534,6 +534,12 @@ console.log('\n[25] Cevrimdisi ve paket: sayfanin kullandigi her dosya onbellekt
   ok(!/googleapis|gstatic/.test(idx + swSrc), 'dis font kaynagi yok (internetsiz ilk acilis)');
   ok([...used, ...fontsUsed].every(x => fs.existsSync(require('path').join(__dirname, x))), 'baglanan her dosya depoda var');
   ok(!/android.permission.INTERNET/.test(rd('android/app/src/main/AndroidManifest.xml')), 'Android uygulamasi internet izni istemiyor');
+  ok(/SCHEDULE_EXACT_ALARM" tools:node="remove"/.test(rd('android/app/src/main/AndroidManifest.xml')), 'tam zamanli alarm izni (Play kisitli) birlesimden cikariliyor');
+  // Tarayıcıda çalışan bütün betikler sözdizimi hatasız derleniyor (testlerin yüklemediği dosyalar dahil)
+  const vm = require('vm'), synErr = [];
+  for(const js of used.filter(x => x.endsWith('.js')).concat(['sw.js'])){ try{ new vm.Script(rd(js), { filename: js }); }catch(e){ synErr.push(js + ': ' + e.message); } }
+  ok(!synErr.length, 'tarayici betikleri derleniyor (' + used.filter(x => x.endsWith('.js')).length + ' dosya + sw.js)', synErr.join(' | '));
+  ok(rd('ios/App/App/Info.plist').includes('NSMicrophoneUsageDescription'), 'iOS mikrofon izni aciklamasi var');
 }
 
 console.log('\n[24] Repertuvar: nota metni, koma isaretleri, MusicXML, tempolu calma');

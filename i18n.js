@@ -57,6 +57,11 @@ const EXACT = {
     "For teachers and experienced G clarinettists: mark each fingering, makam scale and practice-tuning adjustment as right or wrong and send a report.",
   "Karşılamayı yeniden aç": "Show the welcome again",
   "Karşılama": "Welcome",
+  "Günlük hedef": "Daily goal",
+  "Günlük hatırlatma": "Daily reminder",
+  "Hatırlatma saati": "Reminder time",
+  "Her gün bu saatte bir bildirim gelir (birkaç dakika esneyebilir). Bugünkü hedefini tamamladıysan da gelir; seri için iyi bir alışkanlık.":
+    "A notification arrives at this time every day (give or take a few minutes), even if you've already met today's goal; a good habit for your streak.",
   // Başlık ve ayarlar
   "Sol Klarnet — Akort, Parmak, Makam": "Turkish G Clarinet — Tuner, Fingerings, Makam",
   "Sol Klarnet": "Turkish G Clarinet",

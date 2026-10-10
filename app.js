@@ -830,6 +830,37 @@
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); }
   };
 
+  // ---- Günlük hedef ve hatırlatma ----
+  const goalIn = $("goalmin");
+  goalIn.value = store.get("goal.min", 15);
+  goalIn.addEventListener("change", () => {
+    const n = Math.round(+goalIn.value);
+    if(n >= 1 && n <= 240) store.set("goal.min", n); else goalIn.value = store.get("goal.min", 15);
+  });
+  // Hatırlatma yalnızca Android/iOS uygulamasında (yerel bildirim eklentisi); web'de zamanlanmış bildirim yok
+  const LN = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+  if(LN){
+    const remOn = $("remon"), remTime = $("remtime"), remMsg = $("remmsg"), REM_ID = 1001;
+    $("remrow").hidden = false;
+    remOn.checked = !!store.get("rem.on", false);
+    remTime.value = store.get("rem.time", "19:00");
+    async function schedule(){
+      try{
+        await LN.cancel({ notifications:[{ id:REM_ID }] });
+        if(!remOn.checked) return;
+        const perm = await LN.requestPermissions();
+        if(perm.display !== "granted"){ remOn.checked = false; store.set("rem.on", false); remMsg.textContent = L("Bildirim izni verilmedi; telefon ayarlarından açabilirsin.", "Notification permission denied; you can enable it in the phone settings."); return; }
+        const [hour, minute] = remTime.value.split(":").map(Number);
+        await LN.schedule({ notifications:[{ id:REM_ID, title:L("Sol Klarnet", "Turkish G Clarinet"),
+          body:L("Bugünün çalışması seni bekliyor (" + store.get("goal.min", 15) + " dk).", "Today's practice is waiting (" + store.get("goal.min", 15) + " min)."),
+          schedule:{ on:{ hour, minute }, allowWhileIdle:true } }] });
+      }catch(e){ remMsg.textContent = L("Hatırlatma kurulamadı: ", "Couldn't set the reminder: ") + (e && e.message || e); }
+    }
+    remOn.addEventListener("change", () => { store.set("rem.on", remOn.checked); schedule(); });
+    remTime.addEventListener("change", () => { store.set("rem.time", remTime.value); schedule(); });
+    goalIn.addEventListener("change", () => { if(remOn.checked) schedule(); });
+  }
+
   // ---- Yedekleme: sk.* anahtarlarının hepsi tek JSON dosyasına ----
   function backupData(){
     const data = {};

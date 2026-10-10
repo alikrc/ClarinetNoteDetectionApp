@@ -691,7 +691,7 @@
   modules.rec = (() => {
     const P = $("pp-rec");
     P.innerHTML = `
-      <p class="pdesc">Çaldığını kaydet; sonra dinle ve çalınan notaları koma sapmalarıyla gör. Kayıt yalnızca bu sekmede, cihazda tutulur; sayfa kapanınca silinir.</p>
+      <p class="pdesc">${L("Çaldığını kaydet; sonra dinle ve çalınan notaları koma sapmalarıyla gör. Kayıt cihazda tutulur ve sayfa kapanınca silinir; saklamak ya da hocana göndermek için “Kaydı kaydet / paylaş”ı kullan.", "Record your playing, then listen and see the notes with their comma deviations. The recording stays on the device and is discarded when the page closes; use “Save / share the recording” to keep it or send it to your teacher.")}</p>
       <div class="pbar">
         <button class="primary small" id="rcbtn" type="button">Kaydı başlat</button>
         <span class="ltclock small" id="rctime"></span>
@@ -727,10 +727,29 @@
         stage.innerHTML = (url ? `<audio controls src="${url}" id="rcaudio"></audio>` : `<div class="muted">Bu tarayıcı ses kaydını desteklemiyor; yalnızca notalar listelendi.</div>`) +
           `<div class="qcount">${notes.length} nota · ${glideN} glissando · ${num((performance.now() - r.t0)/1000, 0)} sn</div>
           <div class="tablewrap"><table class="rtable"><thead><tr><th>Zaman</th><th>Perde</th><th>Yazılı</th><th>Süre</th><th>Sapma</th></tr></thead><tbody>
-          ${notes.map((n, i) => { const p = nearestPerde(n.comma); return `<tr id="rn${i}"><td>${num(n.start/1000)}</td><td>${p ? p.name : "—"}</td><td>${nn(n.written)}</td><td>${num((n.end-n.start)/1000)} sn</td><td>${p ? sgn(p.delta) + " k" : "—"}</td></tr>`; }).join("")}
+          ${notes.map((n, i) => { const p = contextPerde(n.comma); return `<tr id="rn${i}"><td>${num(n.start/1000)}</td><td>${p ? p.name : "—"}</td><td>${nn(n.written)}</td><td>${num((n.end-n.start)/1000)} sn</td><td>${p ? sgn(p.delta) + " k" : "—"}</td></tr>`; }).join("")}
           </tbody></table></div>
-          <div class="pbar"><button class="stopbtn" id="rccopy" type="button">Notaları kopyala</button>
-          <button class="stopbtn" id="rcpiece" type="button">Eser takibine ekle</button><span class="muted" id="rcmsg"></span></div>`;
+          <div class="pbar">${url ? `<button class="primary small" id="rcsave" type="button">${L("Kaydı kaydet / paylaş", "Save / share the recording")}</button>` : ""}
+          <button class="stopbtn" id="rccopy" type="button">Notaları kopyala</button>
+          <button class="stopbtn" id="rcpiece" type="button">${L("Eserlere ekle", "Add to pieces")}</button><span class="muted" id="rcmsg"></span></div>`;
+        // Kaydı dosya olarak kaydet ya da paylaş (ör. hocaya göndermek için)
+        if(url) $("rcsave").addEventListener("click", async () => {
+          const blob = await (await fetch(url)).blob(), ext = /mp4|aac|m4a/.test(blob.type) ? "m4a" : /ogg/.test(blob.type) ? "ogg" : "webm";
+          const name = "sol-klarnet-kayit-" + dayKey(new Date()) + "-" + new Date().toTimeString().slice(0, 5).replace(":", "") + "." + ext;
+          const P = window.Capacitor && window.Capacitor.Plugins;
+          try{
+            if(P && P.Filesystem && P.Share){
+              const b64 = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+              const w = await P.Filesystem.writeFile({ path:name, data:b64, directory:"CACHE" });
+              await P.Share.share({ title:name, url:w.uri, dialogTitle:L("Kaydı paylaş", "Share the recording") });
+            }else{
+              const file = new File([blob], name, { type: blob.type });
+              if(navigator.canShare && navigator.canShare({ files:[file] }) && matchMedia("(pointer:coarse)").matches) await navigator.share({ files:[file], title:name });
+              else { const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+            }
+            $("rcmsg").textContent = name;
+          }catch(e){ if(!e || e.name !== "AbortError") $("rcmsg").textContent = L("Kaydedilemedi: ", "Couldn't save: ") + (e && e.message || e); }
+        });
         const audio = $("rcaudio");
         if(audio){
           audio.addEventListener("play", () => { playbackMute = true; });
@@ -750,7 +769,7 @@
           const inRange = notes.map(n => n.written).filter(w => w >= LOW_NOTE && w <= HIGH_NOTE);
           if(!inRange.length){ $("rcmsg").textContent = "Eklenecek nota yok."; return; }
           SK.addPiece(_t("Kayıt " + new Date().toLocaleTimeString("tr", { hour:"2-digit", minute:"2-digit" })), inRange);
-          $("rcmsg").textContent = "Eser takibine eklendi (★).";
+          $("rcmsg").textContent = L("Eserlere eklendi.", "Added to pieces.");
         });
       };
       if(r.mr && r.mr.state !== "inactive"){
