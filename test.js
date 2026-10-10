@@ -252,6 +252,7 @@ for(let w=LOW_NOTE; w<=HIGH_NOTE; w++){ const s=staffPos(w).step; maxStep=Math.m
 ok(minStep===-7 && maxStep===16, 'tum aralik -7…16 adim icinde (sabit yukseklikli dizek)', minStep+'…'+maxStep);
 
 const L = require('./learn.js');
+const C = require('./core.js');
 const { PERDES } = require('./core.js');
 
 console.log('\n[14] Makam dizileri');
@@ -267,7 +268,31 @@ for(const mk of L.MAKAMS){
   if(![...mk.asc, ...mk.desc].includes(mk.guclu)) mkErr.push(mk.name+' guclu dizide yok');
   for(const c of [...mk.asc, ...mk.desc]){ const w=L.commaToWritten(c); if(w<LOW_NOTE||w>HIGH_NOTE) mkErr.push(mk.name+' aralik disi '+c); }
 }
-ok(L.MAKAMS.length===9 && mkErr.length===0, '9 makamin her perdesi AEU tablosunda, sirali, durakla basliyor, calinabilir aralikta', mkErr.join(' | '));
+for(const mk of L.MAKAMS){
+  if(!['cikici','inici','inici-cikici'].includes(mk.seyirType)) mkErr.push(mk.name+' seyir turu yok');
+  for(const c of Object.keys(mk.icra)) if(![...mk.asc, ...mk.desc].some(x => C.mod53(x) === +c)) mkErr.push(mk.name+' icra perdesi dizide yok '+c);
+  for(const d of Object.values(mk.icra)) if(Math.abs(d) > 2) mkErr.push(mk.name+' icra duzeltmesi cok buyuk');
+}
+ok(L.MAKAMS.length===19 && new Set(L.MAKAMS.map(m=>m.id)).size===19 && mkErr.length===0, '19 makamin her perdesi AEU tablosunda, sirali, durakla basliyor, calinabilir aralikta; seyir turu ve icra duzeltmeleri gecerli', mkErr.join(' | '));
+{
+  const ussak = L.makamById('ussak');
+  C.setTuningContext(L.tuningCtx(ussak, 'aeu'));
+  const seg = C.contextPerde(17.2);
+  ok(seg.name==='Segâh' && seg.inScale && Math.abs(seg.delta-0.2)<1e-9, 'makam baglaminda (AEU) Segâh hedefi 17 koma');
+  ok(C.contextPerde(18.2).name==='Segâh', 'Uşşak baglaminda Bûselik yerine Segâh secilir (dizide Bûselik yok)');
+  ok(!C.contextPerde(27).inScale && C.contextPerde(27).name==='Hicaz', 'dizi disi perde genel AEU adiyla ve isaretle doner');
+  ok(C.contextPerde(17+53).name==='Tiz Segâh', 'baglam ust oktavda da gecerli');
+  C.setTuningContext(L.tuningCtx(ussak, 'icra'));
+  const segI = C.contextPerde(15.5);
+  ok(segI.name==='Segâh' && Math.abs(segI.delta)<1e-9 && segI.offset===-1.5, 'icra akordunda Uşşak Segâh\'i 1,5 koma pes hedeflenir');
+  ok(Math.abs(C.analyze(C.perdeFreq(71,5),5).comma - 15.5) < 1e-6, 'nota seridi icra hedefini caliyor');
+  const kurdi = C.analyze(C.perdeFreq(70,5),5);
+  ok(Math.abs(kurdi.comma - 13) < 1e-6 && !kurdi.perde.inScale && kurdi.perde.name==='Kürdî', 'dizide olmayan nota AEU perdesinde calar, dizi disi Kürdî diye okunur');
+  C.setTuningContext(null);
+  ok(C.analyze(C.perdeFreq(71,5),5).perde.name==='Bûselik' && C.analyze(midiToFreq(67+17*12/53-5),5).perde.name==='Segâh', 'baglam kaldirilinca eski davranis (yazili Si4 = Bûselik)');
+  ok(L.perdeTarget(ussak, 17, 'icra')===15.5 && L.perdeTarget(ussak, 17+53, 'icra')===68.5 && L.perdeTarget(ussak, 17, 'aeu')===17, 'perde hedefi akort secimine gore');
+}
+ok(C.INSTRUMENTS.find(i=>i.id==='sol').t===5 && C.instrumentById('yok').id==='sol' && C.INSTRUMENTS.every(i=>i.t>=-3 && i.t<=5), 'calgilar ve transpozisyon');
 const rast = L.makamById('rast');
 ok(rast.asc[6]===48 && rast.desc[6]===44, 'Rast: cikarken Evc, inerken Acem');
 ok(L.perdeName(17)==='Segâh' && L.commaToWritten(17)===71 && L.commaToWritten(9)===69 && L.commaToWritten(14)===70, 'koma -> perde adi ve yazili nota (Segâh = Si4, Dügâh = La4)');

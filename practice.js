@@ -4,12 +4,15 @@
   const SK = window.SK;
   if(!SK) return;
   const $ = id => document.getElementById(id);
-  const store = SK.store, T = SOL_TRANSPOSE;
+  const store = SK.store, T = SK.T;
   const nn = w => LANG === "en" ? noteName(w).en : noteName(w).tr;
   const num = (v, d=1) => v.toFixed(d).replace(".", ",");
   const sgn = (v, d=1) => { const r = Math.round(v*10**d)/10**d; return (r>0 ? "+" : r<0 ? "−" : "±") + num(Math.abs(r), d); };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const commaFreq = c => midiToFreq(commaToMidi(c) - T);
+  // Seçili akortta (AEU / icra) bir makam perdesinin hedefi ve sesi
+  const tgt = (mk, c) => perdeTarget(mk, c, SK.tuningMode());
+  const mkFreq = (mk, c) => commaFreq(tgt(mk, c));
   const perdeOf = w => { const p = nearestPerde((w-67)*53/12); return p ? p.name : ""; };
   const label = w => nn(w) + (perdeOf(w) ? " · " + perdeOf(w) : "");
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -215,7 +218,7 @@
     if(intDirty){ intDirty = false; store.set("int.stats", intStats); }
   });
   let resetting = false;
-  window.addEventListener("pagehide", () => { if(!resetting){ store.set("days", days); store.set("int.stats", intStats); } });
+  window.addEventListener("pagehide", () => { if(!resetting && !window.SK_RESETTING){ store.set("days", days); store.set("int.stats", intStats); } });
 
   // Vibrato: kararlı notanın son 1,5 saniyesindeki ham ölçümler
   const vibEl = $("vib");
@@ -260,14 +263,7 @@
   }
   heatBtn.addEventListener("click", () => { heatOn = !heatOn; store.set("heat", heatOn); paintHeat(); });
   paintHeat();
-  function markScale(mk){
-    SK.cells.forEach(el => el.classList.remove("inscale", "durak", "guclu"));
-    if(!mk) return;
-    for(const c of new Set([...mk.asc, ...mk.desc])){ const el = SK.cells.get(commaToWritten(c)); if(el) el.classList.add("inscale"); }
-    const d = SK.cells.get(commaToWritten(mk.durak)), g = SK.cells.get(commaToWritten(mk.guclu));
-    if(d) d.classList.add("durak");
-    if(g) g.classList.add("guclu");
-  }
+  const markScale = mk => SK.markScale(mk);
 
   // Parmak şemasının küçük kopyası (test için; notanın adı gizli kalır)
   function miniChart(){
@@ -517,7 +513,7 @@
         <div><span class="label">Güçlü</span>${perdeName(mk.guclu)}</div>
         <div><span class="label">Yeden</span>${perdeName(mk.yeden)}</div>
         <div><span class="label">Çalışıldı</span>${makamDone[mk.id] ? makamDone[mk.id].n + " kez · en iyi ort. " + num(makamDone[mk.id].best) + " k" : "henüz yok"}</div></div>
-        <p class="seyir">${esc(mk.seyir)}</p>
+        <p class="seyir">${esc(seyirText(mk, LANG))}</p>
         <div class="label">Çıkış</div><div class="chiprow">${chips(mk.asc, "mka")}</div>
         <div class="label">İniş</div><div class="chiprow">${chips([...mk.desc].reverse(), "mkd")}</div>`;
       markScale(mk);
@@ -525,13 +521,13 @@
     $("mklist").addEventListener("click", e => {
       const b = e.target.closest("button"); if(!b) return;
       currentMakam = makamById(b.dataset.id); store.set("makam", currentMakam.id);
-      ex = null; stage.innerHTML = ""; render();
+      ex = null; stage.innerHTML = ""; SK.setTempContext(currentMakam.id); render();
     });
     $("mklisten").addEventListener("click", async () => {
       const mk = currentMakam, token = {}; listenToken = token;
       for(const c of seq(mk)){
         if(listenToken !== token) return;
-        SK.play(commaToWritten(c), commaFreq(c)); await sleep(520);
+        SK.play(commaToWritten(c), mkFreq(mk, c)); await sleep(520);
       }
       if(listenToken === token) SK.stopSound();
     });
@@ -559,7 +555,7 @@
     }
     function judge(t){
       const c = ex.s[ex.i], played = mean(ex.frames);
-      const j = judgePerde(played, c, [...ex.mk.asc, ...ex.mk.desc]);
+      const j = judgePerde(played, tgt(ex.mk, c), [...ex.mk.asc, ...ex.mk.desc]);
       ex.res.push(j);
       const el = chipFor(ex.i);
       if(el){ el.classList.remove("cur"); el.classList.add(j.ok ? "good" : "off"); el.querySelector("i").textContent = sgn(j.dev); }
@@ -579,7 +575,8 @@
       setTimeout(render, 0);
     }
     return {
-      enter(){ render(); },
+      enter(){ SK.setTempContext(currentMakam.id); render(); },
+      leave(){ SK.setTempContext(null); },
       note(r, t){
         if(!ex) return;
         const want = commaToWritten(ex.s[ex.i]);
@@ -613,7 +610,7 @@
     const hold = holder();
     async function playMotif(){
       listening = false;
-      for(const c of motif){ SK.play(commaToWritten(c), commaFreq(c)); await sleep(560); }
+      for(const c of motif){ SK.play(commaToWritten(c), mkFreq(currentMakam, c)); await sleep(560); }
       SK.stopSound(); await sleep(350);
       listening = true; idx = 0; hold.reset();
       $("mmfb").className = "fb"; $("mmfb").textContent = "Şimdi sen çal.";
@@ -636,7 +633,7 @@
       el.querySelector("b").textContent = perdeName(motif[i]);
     }
     return {
-      enter(){ $("mmmk").textContent = "Makam: " + currentMakam.name + " (Makam sekmesinden değiştir)"; },
+      enter(){ SK.setTempContext(currentMakam.id); $("mmmk").textContent = "Makam: " + currentMakam.name + " (Makam sekmesinden değiştir)"; },
       note(r, t){
         if(!listening || !r.inRange) return;
         const h = hold.push(r.written, t);
@@ -662,7 +659,7 @@
         }
       },
       silence(){ hold.reset(); },
-      leave(){ listening = false; motif = null; stage.innerHTML = `<div class="muted">Başlat'a bas, ezgiyi dinle, sonra çal.</div>`; $("mmagain").disabled = true; }
+      leave(){ SK.setTempContext(null); listening = false; motif = null; stage.innerHTML = `<div class="muted">Başlat'a bas, ezgiyi dinle, sonra çal.</div>`; $("mmagain").disabled = true; }
     };
   })();
 
@@ -1021,6 +1018,7 @@
             <div class="stage lsstage" id="lss${i}" hidden></div>
           </li>`; }).join("")}</ol>
         <div id="lsnext"></div>`;
+      SK.setTempContext(l.makam || null);
       markScale(l.makam ? makamById(l.makam) : null);
       renderList(); renderNext();
     }
@@ -1055,11 +1053,13 @@
       return playToken === token;
     }
     const fromNotes = ws => ws.map(w => [w, undefined]);
-    const fromCommas = cs => cs.map(c => [commaToWritten(c), commaFreq(c)]);
+    // Ders ya da adım bir makama aitse perde sesleri seçili akorda (AEU / icra) göre çalar
+    const lessonMk = st => makamById((st && st.makam) || (cur && cur.makam) || "");
+    const fromCommas = (cs, st) => cs.map(c => [commaToWritten(c), mkFreq(lessonMk(st), c)]);
     function itemsOf(st){
-      if(st.type === "scale"){ const mk = makamById(st.makam); return fromCommas([...mk.asc, ...[...mk.desc].reverse().slice(1)]); }
-      if(st.type === "hold" || st.type === "vibrato") return st.comma != null ? [[st.note, commaFreq(st.comma)]] : fromNotes([st.note]);
-      return st.commas ? fromCommas(st.commas) : fromNotes(st.notes);
+      if(st.type === "scale"){ const mk = makamById(st.makam); return fromCommas([...mk.asc, ...[...mk.desc].reverse().slice(1)], st); }
+      if(st.type === "hold" || st.type === "vibrato") return st.comma != null ? [[st.note, mkFreq(lessonMk(st), st.comma)]] : fromNotes([st.note]);
+      return st.commas ? fromCommas(st.commas, st) : fromNotes(st.notes);
     }
     async function hear(st){
       const items = itemsOf(st);
@@ -1077,6 +1077,7 @@
       else if(st.type !== "listen" && !(await needMic())) return;
       if(cur !== lesson) return;
       const stage = $("lss"+i); stage.hidden = false; stage.innerHTML = "";
+      if(st.makam) SK.setTempContext(st.makam);           // günlük plandaki makam adımları
       const me = run = { i, lesson };
       me.h = RUN[st.type](st, stage, res => { if(run === me) finish(me, res); });
       refreshStep(i);
@@ -1117,7 +1118,7 @@
 
       hold(st, stage, done){
         const w = st.note, tp = nearestPerde((w-67)*53/12);
-        const target = st.comma != null ? st.comma : tp ? tp.comma : (w-67)*53/12;
+        const target = st.comma != null ? tgt(lessonMk(st), st.comma) : tp ? tp.comma : (w-67)*53/12;
         const name = nn(w) + " · " + perdeName(target);
         let start = null, devs = [], lastOk = 0;
         stage.innerHTML = `<div class="label">Çal ve tut: ${esc(name)}</div>
@@ -1177,7 +1178,7 @@
             if(r.written === want && h.ms >= 200){
               hold.fire();
               if(tg){
-                const dev = mean(frames) - tg[i]; devs.push(dev);
+                const dev = mean(frames) - tgt(lessonMk(st), tg[i]); devs.push(dev);
                 chips[i].querySelector("i").textContent = sgn(dev);
                 if(Math.abs(dev) > 1) chips[i].classList.add("off");
               }
@@ -1278,7 +1279,7 @@
           q(stage, ".lsn").innerHTML = perdeName(s[i]) + ` <em>yazılı ${nn(commaToWritten(s[i]))} · ${i < mk.asc.length ? "çıkış" : "iniş"}</em>`;
         }
         function judge(){
-          const c = s[i], j = judgePerde(mean(frames), c, all);
+          const c = s[i], j = judgePerde(mean(frames), tgt(mk, c), all);
           res.push(j);
           chips[i].classList.remove("cur"); chips[i].classList.add(j.ok ? "good" : "off");
           chips[i].querySelector("i").textContent = sgn(j.dev);
@@ -1323,7 +1324,7 @@
         }
         async function playMotif(){
           listening = false;
-          const ok = await playSeq(fromCommas(motif));
+          const ok = await playSeq(fromCommas(motif, st));
           if(!ok || !alive) return;
           listening = true; idx = 0; hold.reset();
           const fb = q(stage, ".lmf"); fb.className = "fb lmf"; fb.textContent = "Şimdi sen çal.";
@@ -1430,8 +1431,8 @@
     const saved = store.get("lesson.cur", ""), savedL = lessonById(saved);
     open(saved === "daily" ? dailyLesson() : savedL && unlocked(savedL, prog, allOpen) ? savedL : (nextLesson(prog, allOpen) || LESSONS[0]));
     return {
-      enter(){ renderList(); if(cur) markScale(cur.makam ? makamById(cur.makam) : null); },
-      leave(){ stopRun(); },
+      enter(){ renderList(); if(cur){ SK.setTempContext(cur.makam || null); markScale(cur.makam ? makamById(cur.makam) : null); } },
+      leave(){ stopRun(); SK.setTempContext(null); },
       note(r, t){ if(run && run.h && run.h.note) run.h.note(r, t); },
       silence(t){ if(run && run.h && run.h.silence) run.h.silence(t); },
       raw(d){ if(run && run.h && run.h.raw) run.h.raw(d); }

@@ -135,8 +135,56 @@ function nearestPerde(comma){
   if(!best || bd>2.5) return null;
   return { name: best[1], comma: best[0], delta: comma-best[0] };
 }
+
+// ---- Çalgı (transpozisyon) ----
+// Yazılı nota = duyulan + t yarım ses. Albert sistem klarnetlerde parmaklar yazılı notaya göredir;
+// hangi klarnet olursa olsun Türk müziği notasında Rast yazılı Sol'dur.
+const INSTRUMENTS = [
+  { id:"sol", name:"Sol klarnet", t:5 },
+  { id:"sib", name:"Si♭ klarnet", t:2 },
+  { id:"la",  name:"La klarnet",  t:3 },
+  { id:"do",  name:"Do klarnet",  t:0 },
+  { id:"mib", name:"Mi♭ klarnet", t:-3 }
+];
+const instrumentById = id => INSTRUMENTS.find(x => x.id === id) || INSTRUMENTS[0];
+
+// ---- Makam bağlamı ----
+// Akort ekranında makam seçiliyse çalınan ses yalnızca o makamın perdeleri (tüm oktavları) arasında aranır;
+// hedef, "icra" akordunda makama özgü düzeltmeyle kayar (ör. Uşşak'ta Segâh AEU'dan pes basılır).
+// ctx: { scale:[koma], offsets:{ [koma mod 53]: düzeltme } } ya da null (bütün AEU perdeleri)
+let TUNING_CTX = null;
+function setTuningContext(ctx){ TUNING_CTX = ctx && ctx.scale && ctx.scale.length ? ctx : null; }
+function getTuningContext(){ return TUNING_CTX; }
+const mod53 = c => ((Math.round(c) % 53) + 53) % 53;
+function perdeNameAt(c){ const p = PERDES.find(x => x[0] === c); return p ? p[1] : null; }
+// Bağlama göre en yakın perde: { name, comma (hedef), base (AEU), delta, inScale, offset }
+function contextPerde(comma, ctx = TUNING_CTX){
+  if(!ctx) return nearestPerde(comma);
+  let best = null, bd = 1e9;
+  for(const c of new Set(ctx.scale.map(mod53))){
+    for(let k=-2;k<=3;k++){
+      const base = c + 53*k, name = perdeNameAt(base);
+      if(!name) continue;
+      const off = (ctx.offsets && ctx.offsets[c]) || 0, target = base + off, d = Math.abs(comma - target);
+      if(d < bd){ bd = d; best = { name, comma: target, base, delta: comma - target, inScale: true, offset: off }; }
+    }
+  }
+  // Dizideki perde, ya AEU'da da en yakın perdeyse ya da 1,5 komadan yakınsa seçilir;
+  // aksi hâlde başka bir AEU perdesi çalınıyordur (ör. Uşşak'ta Kürdî) ve dizi dışı diye gösterilir.
+  const g = nearestPerde(comma);
+  if(best && bd <= 2.5 && (bd < 1.5 || (g && g.comma === best.base))) return best;
+  return g ? { ...g, base: g.comma, inScale: false, offset: 0 } : null;
+}
 function perdeFreq(written, transpose){
-  const p = nearestPerde((written-67)*53/12);
+  const c0 = (written-67)*53/12;
+  // Makam bağlamında dizideki perde (icra düzeltmesiyle) çalar; yazılı nota dizide yoksa AEU perdesi
+  let p = null;
+  if(TUNING_CTX) for(const c of new Set(TUNING_CTX.scale.map(mod53))) for(let k=-2;k<=3 && !p;k++){
+    const base = c + 53*k;
+    if(Math.round(67 + base*12/53) === written && perdeNameAt(base))
+      p = { comma: base + ((TUNING_CTX.offsets && TUNING_CTX.offsets[c]) || 0) };
+  }
+  if(!p) p = nearestPerde(c0);
   const exact = p ? 67 + p.comma*12/53 : written;   // perde adı olmayan kaba bölge: tampere
   return midiToFreq(exact - transpose);
 }
@@ -280,7 +328,7 @@ function analyze(freq, transpose){
     freq, cents, written, comma,
     writtenName: noteName(written),
     soundingName: noteName(written-transpose),
-    perde: nearestPerde(comma),
+    perde: contextPerde(comma),
     fingering: FINGERINGS[written] || null,
     fingerings: fingeringsFor(written),
     register: written<=70 ? "Chalumeau" : written<=84 ? "Klarino" : "Altissimo",
@@ -413,7 +461,8 @@ class NoteStabilizer{
 function noteKey(r){ return r.written + ":" + (r.perde ? r.perde.comma : "-"); }
 
 if(typeof module !== "undefined") module.exports = {
-  SOL_TRANSPOSE, FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName, staffPos,
+  SOL_TRANSPOSE, INSTRUMENTS, instrumentById, setTuningContext, getTuningContext, contextPerde, perdeNameAt, mod53, fft, toneMag,
+  FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName, staffPos,
   nearestPerde, perdeFreq, parseFingering, keyInfo, fingeringIds, findFingering, describeFingering, analyze,
   sensitivityToRms, detectPitch, NoteStabilizer, noteKey
 };

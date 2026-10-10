@@ -377,8 +377,15 @@ body:not([data-view="tune"]) #tunecard,
 body:not([data-view="finger"]) #fingercard,
 body:not([data-view="practice"]) #practice,
 body:not([data-view="settings"]) #settingsview,
-body[data-view="practice"] .strip, body[data-view="settings"] .strip{display:none}
-body[data-view="practice"] .grid, body[data-view="settings"] .grid{display:none}
+body:not([data-view="review"]) #reviewview,
+body[data-view="practice"] .strip, body[data-view="settings"] .strip, body[data-view="review"] .strip{display:none}
+body[data-view="practice"] .grid, body[data-view="settings"] .grid, body[data-view="review"] .grid{display:none}
+body[data-view="review"] .page{max-width:900px}
+
+/* Akort kartında makam bağlamı */
+.ctxrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.ctxrow select{max-width:min(100%,260px)}
+.ctxhint{margin-top:8px;line-height:1.5}
 
 /* Parmak kartındaki küçük akort göstergesi: çalınan perde + sapma iğnesi (geniş ekranda büyüğü yanda) */
 .minitune{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px 14px;
@@ -459,3 +466,17 @@ footer{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;max-wid
   .nav button[data-view="finger"], .gofinger{display:none}
 }
 body[data-view="settings"] .page{max-width:680px}
+
+/* Uzman kontrolü */
+#reviewview{gap:14px}
+.rvnote{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.rvnote summary{cursor:pointer;font-size:14px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.rvnote.rvbad{border-color:var(--accent)}
+.rvlist{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+.rvitem{display:grid;grid-template-columns:130px minmax(0,1fr);gap:14px;align-items:start;border-top:1px solid var(--line);padding-top:12px}
+.rvitem svg.minichart{width:130px}
+.rvsteps{margin:6px 0 10px;padding-left:18px;font-size:12.5px;line-height:1.5}
+.rvv{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.rvv .rvc{flex:1 1 220px}
+.rvmk{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+@media(max-width:520px){.rvitem{grid-template-columns:96px minmax(0,1fr)}.rvitem svg.minichart{width:96px}}

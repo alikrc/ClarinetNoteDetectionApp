@@ -2,7 +2,7 @@
 // Çalışma bölümü (practice.js) window.SK üzerinden buraya bağlanır.
 (function(){
   const $ = id => document.getElementById(id);
-  const T = SOL_TRANSPOSE;
+  const listeners = {};                                 // SK.on olay dinleyicileri (aşağıda)
   const btn=$("btn"), btnLab=$("btnlab"), chip=$("chip");
   const perdeEl=$("perde"), komaEl=$("koma"), needle=$("needle"), centtxt=$("centtxt"), track=$("track");
   const writtenEl=$("written"), soundEl=$("sounding"), hzEl=$("hz"),
@@ -26,6 +26,9 @@
   if(settings.mode!=="koma" && settings.mode!=="sent") settings.mode = "koma";
   if(!(settings.sens>=1 && settings.sens<=10)) settings.sens = 5;
   setA4(settings.a4);
+  // Çalgı: yazılı nota = duyulan + T yarım ses (Sol klarnet 5). Değişince sayfa yeniden yüklenir.
+  const inst = instrumentById(store.get("inst", "sol"));
+  const T = inst.t;
 
   const a4In=$("a4"), sensIn=$("sens");
   a4In.value = settings.a4; sensIn.value = settings.sens;
@@ -71,6 +74,73 @@
   }
   sensIn.addEventListener("input", () => applySens(+sensIn.value));
   applySens(settings.sens);
+
+  // Çalgı seçimi
+  const instSel = $("inst");
+  INSTRUMENTS.forEach(i => instSel.add(new Option(i.name + " (" + L("yazılı = duyulan ", "written = sounding ") + (i.t >= 0 ? "+" : "−") + Math.abs(i.t) + L(" yarım ses", " semitones") + ")", i.id)));
+  instSel.value = inst.id;
+  instSel.addEventListener("change", () => { store.set("inst", instSel.value); location.reload(); });
+
+  // Hoparlör modu: tarayıcının yankı gidericisi uygulamanın kendi sesini (dron, metronom) mikrofondan çıkarır
+  const aecIn = $("aec");
+  aecIn.checked = !!store.get("aec", false);
+  aecIn.addEventListener("change", async () => {
+    store.set("aec", aecIn.checked);
+    if(running){ stop(); await start(); }
+  });
+
+  // Ortam gürültüsüne göre hassasiyet: 3 sn sessizliğin RMS'inin ~8 dB üstü eşik olur
+  $("calib").addEventListener("click", async () => {
+    const msg = $("calibmsg");
+    if(!running) await start();
+    if(!running){ msg.textContent = L("Mikrofon açılamadı.", "Couldn't open the microphone."); return; }
+    const vals = [];
+    const on = d => vals.push(d.rms);
+    levelTaps.add(on);
+    msg.textContent = L("Ölçülüyor… çalma.", "Measuring… don't play.");
+    $("calib").disabled = true;
+    await new Promise(r => setTimeout(r, 3000));
+    levelTaps.delete(on); $("calib").disabled = false;
+    if(vals.length < 10){ msg.textContent = L("Ölçüm alınamadı, yeniden dene.", "No measurement, try again."); return; }
+    vals.sort((a,b) => a-b);
+    const noise = vals[Math.floor(vals.length*0.9)], thr = Math.max(0.0015, noise*2.5);
+    const sv = Math.round(Math.min(10, Math.max(1, 1 + 9*Math.log(thr/0.03)/Math.log(0.002/0.03))));
+    sensIn.value = sv; applySens(sv);
+    msg.textContent = L("Oda gürültüsü ", "Room noise ") + Math.round(20*Math.log10(Math.max(noise,1e-6))) + L(" dBFS · hassasiyet ", " dBFS · sensitivity ") + sv + (sv <= 2 ? L(" (gürültülü oda; mümkünse sessiz bir yer seç)", " (noisy room; find a quieter place if you can)") : "");
+  });
+  const levelTaps = new Set();
+
+  // ---- Makam bağlamı (akort ekranı) ----
+  // Kullanıcının seçtiği makam kalıcıdır; çalışma bölümündeki bir makam dersi/alıştırması geçici bağlam kurar.
+  const tMakam = $("tmakam"), tuneBtns = document.querySelectorAll("#tuneseg [data-tune]"), ctxHint = $("ctxhint");
+  MAKAMS.forEach(m => tMakam.add(new Option("Makam: " + m.name, m.id)));
+  let userCtx = { mk: store.get("tune.makam", ""), mode: store.get("tune.mode", "aeu") };
+  if(!makamById(userCtx.mk)) userCtx.mk = "";
+  if(userCtx.mode !== "icra") userCtx.mode = "aeu";
+  let tempCtx = null;
+  // Geçici bağlam yalnızca çalışma görünümünde geçerli; akort ekranına dönünce kullanıcının seçimi geri gelir
+  const tempOn = () => !!tempCtx && document.body.dataset.view === "practice";
+  const ctxNow = () => tempOn() ? { mk: tempCtx.mk, mode: userCtx.mode } : userCtx;
+  function applyCtx(){
+    const c = ctxNow(), mk = c.mk ? makamById(c.mk) : null;
+    setTuningContext(tuningCtx(mk, c.mode));
+    tMakam.value = c.mk || ""; tMakam.disabled = tempOn();
+    markSeg(tuneBtns, "tune", c.mode);
+    $("perdelab").textContent = mk ? mk.name + " · " + (c.mode === "icra" ? L("icra", "practice") : "AEU") : L("AEU perdesi", "AEU perde");
+    if(mk){
+      const fix = Object.entries(mk.icra).map(([k, d]) => perdeNameAt(+k) + " " + fmtKoma(d));
+      ctxHint.textContent = L("Durak ", "Final ") + perdeName(mk.durak) + " · " + L("güçlü ", "dominant ") + perdeName(mk.guclu) +
+        (c.mode === "icra" ? (fix.length ? " · " + L("icra düzeltmesi: ", "practice tuning: ") + fix.join(", ") + L(" koma (yaklaşık)", " commas (approximate)") : " · " + L("bu makamda icra düzeltmesi yok", "no practice adjustment in this makam")) : "") +
+        (tempOn() ? " · " + L("çalışma bölümünden", "set by the practice section") : "");
+      ctxHint.hidden = false;
+    }else ctxHint.hidden = true;
+    markRailScale(mk);
+    relabelRail();
+    hist.length = 0; stab.reset();
+    if(!running) show(lastShown ? analyze(perdeFreq(lastShown.written, T), T) : sample());
+  }
+  tMakam.addEventListener("change", () => { userCtx.mk = tMakam.value; store.set("tune.makam", userCtx.mk); applyCtx(); });
+  tuneBtns.forEach(b => b.addEventListener("click", () => { userCtx.mode = b.dataset.tune; store.set("tune.mode", userCtx.mode); applyCtx(); }));
 
   // ---- Gösterge ölçeği ----
   // Koma modu: en yakın AEU perdesinden sapma (±2 koma). Sent modu: tampere notadan sapma (±50 sent).
@@ -269,7 +339,7 @@
     }else{
       perdeEl.textContent = r.perde ? r.perde.name : r.writtenName.tr;
       komaEl.textContent = r.perde
-        ? fmtKoma(r.perde.delta) + " koma sapma"
+        ? fmtKoma(r.perde.delta) + " koma sapma" + (r.perde.inScale === false ? " · " + L("dizi dışı", "outside the scale") : "")
         : "bu kaba bölge için AEU perde adı yok";
     }
     // Türkçede yanına uluslararası adı (G4) yazılır; İngilizcede tek ad yeter
@@ -280,7 +350,8 @@
 
     if(komaMode){
       const c = Math.round(r.perde.delta*1200/53);
-      centtxt.textContent = "perdeden sapma: " + fmtKoma(r.perde.delta) + " koma (≈ " + (c>0?"+":"") + c + " sent)";
+      centtxt.textContent = "perdeden sapma: " + fmtKoma(r.perde.delta) + " koma (≈ " + (c>0?"+":"") + c + " sent)" +
+        (r.perde.offset ? " · " + L("icra hedefi AEU'dan ", "practice target ") + fmtKoma(r.perde.offset) + L(" koma", " commas from AEU") : "");
     }else{
       centtxt.textContent = "tampere notadan sapma: " + (r.cents>0?"+":"") + r.cents + " sent" +
         (settings.mode==="koma" ? " — burada perde adı yok" : "");
@@ -359,6 +430,23 @@
     if(!el || !rail.clientWidth) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     rail.scrollTo({ left: el.offsetLeft - (rail.clientWidth - el.offsetWidth)/2, behavior: smooth && !reduce ? "smooth" : "auto" });
+  }
+  // Makam dizisini şeritte işaretle: çerçeveli dizi, dolu durak, kesik güçlü
+  function markRailScale(mk){
+    cells.forEach(el => el.classList.remove("inscale", "durak", "guclu"));
+    if(!mk) return;
+    for(const c of new Set([...mk.asc, ...mk.desc])){ const el = cells.get(commaToWritten(c)); if(el) el.classList.add("inscale"); }
+    const d = cells.get(commaToWritten(mk.durak)), g = cells.get(commaToWritten(mk.guclu));
+    if(d) d.classList.add("durak");
+    if(g) g.classList.add("guclu");
+  }
+  // Şeritteki perde adları bağlama göre (ör. Uşşak'ta yazılı Si4 = Segâh)
+  function relabelRail(){
+    cells.forEach((el, w) => {
+      const p = analyze(perdeFreq(w, T), T).perde;
+      el.querySelector(".pn").textContent = p ? p.name : "—";
+      el.setAttribute("aria-label", (p ? p.name + ", " : "") + "yazılı " + noteName(w).tr + " çal");
+    });
   }
   function markActive(w){
     cells.forEach((el,k) => el.classList.toggle("on", k===w));
@@ -519,6 +607,7 @@
   let ctx=null, stream=null, analyser=null, buf=null, running=false, starting=false, timer=null, drawPending=false, lastT=0, lastFreq=-1, winLen=4096;
   const hist=[];
   const stab = new NoteStabilizer(3);
+  applyCtx();
 
   // Dinlerken ekranın uykuya geçmesini engelle (Screen Wake Lock API).
   // Sekme arka plana gidince tarayıcı kilidi otomatik bırakır; geri gelince yeniden alınır.
@@ -547,7 +636,7 @@
     starting = true; btn.disabled = true; chip.textContent = "izin bekleniyor";
     try{
       stream = await navigator.mediaDevices.getUserMedia({ audio:{
-        echoCancellation:false, noiseSuppression:false, autoGainControl:false }});
+        echoCancellation: !!store.get("aec", false), noiseSuppression:false, autoGainControl:false }});
     }catch(e){
       chip.textContent = "mikrofon açılamadı (" + e.name + ")";
       starting = false; btn.disabled = false;
@@ -621,7 +710,9 @@
     lv.style.width = dbPos(d.rms) + "%";
     lv.classList.toggle("hot", d.rms >= minRms);
     // Her ölçümde seviye ve ses netliği (ritim, ses kalitesi ve dinamik alıştırmaları için)
-    emit("level", { t:now, rms:d.rms, on: d.freq > 0, clarity:d.clarity, freq:d.freq });
+    const lev = { t:now, rms:d.rms, on: d.freq > 0, clarity:d.clarity, freq:d.freq };
+    levelTaps.forEach(fn => fn(lev));
+    emit("level", lev);
     if(d.freq > 0){
       emit("raw", { t:now, freq:d.freq, comma:(freqToMidi(d.freq) + T - 67)*53/12, rms:d.rms, clarity:d.clarity });
       hist.push(d.freq); if(hist.length>5) hist.shift();
@@ -650,7 +741,7 @@
   // Ana görünüm Akort'tur. Başka görünüme geçiş geçmişe bir kayıt ekler; böylece Android geri tuşu
   // (ve tarayıcı geri tuşu) önce Akort'a döner, sonra uygulamadan çıkar. Görünümler arası geçişte
   // her görünümün kaydırma konumu korunur.
-  const VIEWS = ["tune", "finger", "practice", "settings"];
+  const VIEWS = ["tune", "finger", "practice", "settings", "review"];
   const navBtns = document.querySelectorAll(".nav [data-view]");
   const wide = window.matchMedia("(min-width:1100px)");   // geniş ekranda parmak şeması akortla yan yana
   const scrollPos = {};
@@ -662,8 +753,11 @@
     scrollPos[view] = window.scrollY;
     view = v;
     document.body.dataset.view = v;
-    navBtns.forEach(b => b.dataset.view === v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-    if(v !== "settings") store.set("view", v);
+    const navV = v === "review" ? "settings" : v;      // uzman kontrolü Ayarlar'ın alt sayfası
+    navBtns.forEach(b => b.dataset.view === navV ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    if(v !== "settings" && v !== "review") store.set("view", v);
+    applyCtx();
+    emit("view", { v });
     window.scrollTo(0, scrollPos[v] || 0);
     drawTrace();                                         // gizliyken boyutu 0'dı
     if(v === "finger" || v === "tune") centerInRail(railActive, false);
@@ -694,7 +788,6 @@
   // ---- Çalışma modülleri (practice.js) için arayüz ----
   // Olaylar: "raw" her ölçüm {t, freq, comma}; "note" kararlı nota {t, r}; "silence" {t};
   // "mic" mikrofon açıldı/kapandı {on}.
-  const listeners = {};
   function emit(ev, data){ (listeners[ev] || []).forEach(fn => { try{ fn(data); }catch(e){ console.error(e); } }); }
   window.SK = {
     on(ev, fn){ (listeners[ev] = listeners[ev] || []).push(fn); },
@@ -708,8 +801,68 @@
     drawStaffInto,
     markGlide: t => traceMarks.push({ t }),
     windowSec: () => analyser && ctx ? winLen / ctx.sampleRate : 0,
-    audioCtx
+    audioCtx,
+    T, inst,
+    go,
+    // Çalışma bölümü makam dersi/alıştırması sürerken akort bağlamını geçici olarak o makama kurar
+    setTempContext(mkId){ tempCtx = mkId ? { mk: mkId } : null; applyCtx(); },
+    tuningMode: () => ctxNow().mode,
+    markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
+    level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); }
   };
+
+  // ---- Yedekleme: sk.* anahtarlarının hepsi tek JSON dosyasına ----
+  function backupData(){
+    const data = {};
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith("sk.")) try{ data[k.slice(3)] = JSON.parse(localStorage.getItem(k)); }catch(e){}
+    }
+    return { app:"sol-klarnet", v:1, date:new Date().toISOString(), data };
+  }
+  const bkMsg = $("bkmsg"), BK_HINT = bkMsg.textContent;
+  $("bkexport").addEventListener("click", async () => {
+    const json = JSON.stringify(backupData()), name = "sol-klarnet-" + dayKey(new Date()) + ".json";
+    const P = window.Capacitor && window.Capacitor.Plugins;
+    try{
+      if(P && P.Filesystem && P.Share){
+        // Android: önbelleğe yaz, paylaşım menüsüyle Drive'a, e-postaya ya da Dosyalar'a kaydet
+        const w = await P.Filesystem.writeFile({ path:name, data:json, directory:"CACHE", encoding:"utf8" });
+        await P.Share.share({ title:name, url:w.uri, dialogTitle:L("Yedeği kaydet", "Save backup") });
+      }else{
+        const file = new File([json], name, { type:"application/json" });
+        if(navigator.canShare && navigator.canShare({ files:[file] }) && matchMedia("(pointer:coarse)").matches)
+          await navigator.share({ files:[file], title:name });
+        else{
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        }
+      }
+      bkMsg.textContent = L("Yedek hazır: ", "Backup ready: ") + name + " (" + Math.round(json.length/1024) + " KB)";
+    }catch(e){
+      if(e && e.name === "AbortError") return;
+      bkMsg.textContent = L("Yedek kaydedilemedi: ", "Couldn't save the backup: ") + (e && e.message || e);
+    }
+  });
+  $("bkimport").addEventListener("click", () => $("bkfile").click());
+  $("bkfile").addEventListener("change", async () => {
+    const file = $("bkfile").files[0]; $("bkfile").value = "";
+    if(!file) return;
+    let bk;
+    try{ bk = JSON.parse(await file.text()); }catch(e){ bkMsg.textContent = L("Dosya okunamadı.", "Couldn't read the file."); return; }
+    if(!bk || bk.app !== "sol-klarnet" || typeof bk.data !== "object"){ bkMsg.textContent = L("Bu bir Sol Klarnet yedeği değil.", "This is not a Sol Klarnet backup."); return; }
+    const when = bk.date ? new Date(bk.date).toLocaleString(LANG === "en" ? "en" : "tr") : "?";
+    if(!confirm(L("Bu cihazdaki ilerleme silinip yedekteki (" + when + ") yüklensin mi?", "Replace the progress on this device with the backup from " + when + "?"))) return;
+    for(let i=localStorage.length-1;i>=0;i--){ const k = localStorage.key(i); if(k && k.startsWith("sk.")) localStorage.removeItem(k); }
+    for(const [k, v] of Object.entries(bk.data)) try{ localStorage.setItem("sk." + k, JSON.stringify(v)); }catch(e){}
+    window.SK_RESETTING = true;
+    location.reload();
+  });
+  bkMsg.textContent = BK_HINT;
+  // Tarayıcı depolama alanı sıkışınca verileri silmesin (yalnızca web; Android uygulamasında gerekmez)
+  if(navigator.storage && navigator.storage.persist && !window.Capacitor)
+    navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => {});
 
   // Çevrimdışı kullanım (http/https üzerinden açıldığında; Android uygulamasında dosyalar zaten pakette)
   if("serviceWorker" in navigator && location.protocol.startsWith("http") && !window.Capacitor){

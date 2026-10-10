@@ -2,7 +2,7 @@
 // Arayüz Türkçe yazılır; İngilizce seçiliyse sayfaya giren her metin (ve aria-label/title/placeholder)
 // bu sözlükle çevrilir. Makam ve perde adları iki dilde de Türkçe kalır; yazılı nota adları
 // (Sol4 → G4) ve ondalık virgül (0,5 → 0.5) kendiliğinden dönüşür.
-// Yeni bir metin eklerken İngilizcesini EXACT'e ya da (değişken içeriyorsa) PATTERNS'e ekle.
+// Yeni metinlerde L("Türkçe", "English") yardımcısını kullan; eski metinlerin İngilizcesi EXACT ve PATTERNS sözlüğünde.
 
 const LANG = (() => {
   try{ const v = JSON.parse(localStorage.getItem("sk.lang")); if(v === "tr" || v === "en") return v; }catch(e){}
@@ -315,6 +315,9 @@ function translate(text){
 }
 // Kod içinde (confirm, pano, kayıtlı adlar) kullanılan metinler için
 function _t(s){ return LANG === "en" ? translate(s) : s; }
+// Yeni kodda tercih edilen yol: iki dil yan yana yazılır, sözlüğe kayıt gerekmez.
+// İngilizce metin sözlükte bulunmadığı için sayfa çevirmeni ona dokunmaz.
+function L(tr, en){ return LANG === "en" ? en : tr; }
 
 if(LANG === "en"){
   document.title = EXACT["Sol Klarnet — Akort, Parmak, Makam"];

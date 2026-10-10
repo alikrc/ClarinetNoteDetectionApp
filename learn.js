@@ -36,9 +36,77 @@ const MAKAMS = [
     seyir:"Çıkıcı. Dügâh'ta Kürdî dörtlüsü + Nevâ'da Bûselik beşlisi." },
   { id:"nihavend", name:"Nihâvend", durak:0, guclu:31, yeden:-5,
     asc:[0,9,13,22,31,35,48,53], desc:[0,9,13,22,31,35,44,53],
-    seyir:"Çıkıcı. Rast'ta Bûselik beşlisi + Nevâ'da Kürdî ya da (çıkarken) Hicaz dörtlüsü." }
+    seyir:"Çıkıcı. Rast'ta Bûselik beşlisi + Nevâ'da Kürdî ya da (çıkarken) Hicaz dörtlüsü." },
+  // ---- Genişletilmiş makamlar (ileri seviye) ----
+  { id:"bayati", name:"Bayâtî", durak:9, guclu:31, yeden:0,
+    asc:[9,17,22,31,40,44,53,62], desc:[9,17,22,31,40,44,53,62],
+    seyir:"İnici-çıkıcı. Dizisi Uşşak'la aynı; ezgi Nevâ civarından başlar, Uşşak'tan farkı seyirdedir. Dügâh'ta karar.",
+    seyirEn:"Descending-ascending. Same scale as Uşşak; the melody opens around Nevâ, the difference is in the seyir. Final on Dügâh." },
+  { id:"karcigar", name:"Karcığar", durak:9, guclu:31, yeden:0,
+    asc:[9,17,22,31,36,48,53,62], desc:[9,17,22,31,36,48,53,62],
+    seyir:"İnici-çıkıcı. Dügâh'ta Uşşak dörtlüsü + Nevâ'da Hicaz beşlisi (Hisar, Evç). Nevâ'da yarım karar, Dügâh'ta tam karar.",
+    seyirEn:"Descending-ascending. Uşşak tetrachord on Dügâh + Hicaz pentachord on Nevâ (Hisar, Evç). Half cadence on Nevâ, final on Dügâh." },
+  { id:"humayun", name:"Hümâyun", durak:9, guclu:31, yeden:0,
+    asc:[9,14,26,31,40,44,53,62], desc:[9,14,26,31,40,44,53,62],
+    seyir:"Çıkıcı. Dügâh'ta Hicaz dörtlüsü + Nevâ'da Bûselik beşlisi; Hicaz ailesinin hüzünlü rengi.",
+    seyirEn:"Ascending. Hicaz tetrachord on Dügâh + Bûselik pentachord on Nevâ; the melancholy colour of the Hicaz family." },
+  { id:"uzzal", name:"Uzzâl", durak:9, guclu:31, yeden:0,
+    asc:[9,14,26,31,40,48,53,62], desc:[9,14,26,31,40,44,53,62],
+    seyir:"Çıkıcı. Dügâh'ta Hicaz beşlisi + Hüseynî'de Uşşak dörtlüsü; Nevâ ve Hüseynî çevresinde gezinir.",
+    seyirEn:"Ascending. Hicaz pentachord on Dügâh + Uşşak tetrachord on Hüseynî; wanders around Nevâ and Hüseynî." },
+  { id:"zirguleli", name:"Zirgüleli Hicaz", durak:9, guclu:31, yeden:0,
+    asc:[9,14,26,31,36,48,53,62], desc:[9,14,26,31,36,48,53,62],
+    seyir:"Çıkıcı. Dügâh'ta Hicaz beşlisi + Nevâ'da Hicaz dörtlüsü (Hisar, Evç): iki Hicaz çeşnisi üst üste.",
+    seyirEn:"Ascending. Hicaz pentachord on Dügâh + Hicaz tetrachord on Nevâ (Hisar, Evç): two Hicaz flavours stacked." },
+  { id:"suzinak", name:"Sûzinak", durak:0, guclu:31, yeden:-5,
+    asc:[0,9,17,22,31,36,48,53], desc:[0,9,17,22,31,36,48,53],
+    seyir:"Çıkıcı. Rast'ta Rast beşlisi + Nevâ'da Hicaz dörtlüsü; Rast'ın parlaklığına Hicaz'ın rengi eklenir.",
+    seyirEn:"Ascending. Rast pentachord on Rast + Hicaz tetrachord on Nevâ; Rast's brightness with the colour of Hicaz." },
+  { id:"hicazkar", name:"Hicazkâr", durak:0, guclu:31, yeden:-5,
+    asc:[0,5,17,22,31,36,48,53], desc:[0,5,17,22,31,36,48,53],
+    seyir:"İnici-çıkıcı. Rast'ta Hicaz beşlisi (Zirgüle, Segâh) + Nevâ'da Hicaz dörtlüsü; Zirgüleli Hicaz'ın Rast'a göçürülmüşü.",
+    seyirEn:"Descending-ascending. Hicaz pentachord on Rast (Zirgüle, Segâh) + Hicaz tetrachord on Nevâ; Zirgüleli Hicaz transposed to Rast." },
+  { id:"kurdilihicazkar", name:"Kürdîli Hicazkâr", durak:0, guclu:22, yeden:-9,
+    asc:[0,4,13,22,31,35,44,53], desc:[0,4,13,22,31,35,44,53],
+    seyir:"İnici. Rast'ta Kürdî dörtlüsü + Çargâh'ta Bûselik beşlisi; ezgi tizden başlar, Çargâh'ta yarım karar.",
+    seyirEn:"Descending. Kürdî tetrachord on Rast + Bûselik pentachord on Çargâh; the melody starts high, half cadence on Çargâh." },
+  { id:"mahur", name:"Mâhur", durak:0, guclu:31, yeden:-4,
+    asc:[0,9,18,22,31,40,49,53], desc:[0,9,18,22,31,40,49,53],
+    seyir:"İnici. Rast'ta Çargâh beşlisi + Nevâ'da Çargâh dörtlüsü (Bûselik, Mâhur perdeleri); ezgi Gerdâniye civarından başlar.",
+    seyirEn:"Descending. Çargâh pentachord on Rast + Çargâh tetrachord on Nevâ (Bûselik and Mâhur perdes); the melody starts around Gerdâniye." },
+  { id:"acemasiran", name:"Acemaşîran", durak:-9, guclu:22, yeden:-13,
+    asc:[-9,0,9,13,22,31,40,44], desc:[-9,0,9,13,22,31,40,44],
+    seyir:"İnici. Acem Aşîran'da Çargâh beşlisi + Çargâh'ta Çargâh dörtlüsü; Acem ve Kürdî perdeleri kullanılır.",
+    seyirEn:"Descending. Çargâh pentachord on Acem Aşîran + Çargâh tetrachord on Çargâh; uses the Acem and Kürdî perdes." }
 ];
+// Seyir türü: ezginin dizide nereden başlayıp nasıl gezindiği (seyir analizinde kullanılır)
+const SEYIR_TYPE = { rast:"cikici", ussak:"cikici", huseyni:"inici-cikici", hicaz:"cikici", huzzam:"cikici",
+  segah:"cikici", saba:"cikici", kurdi:"cikici", nihavend:"cikici", bayati:"inici-cikici", karcigar:"inici-cikici",
+  humayun:"cikici", uzzal:"cikici", zirguleli:"cikici", suzinak:"cikici", hicazkar:"inici-cikici",
+  kurdilihicazkar:"inici", mahur:"inici", acemasiran:"inici" };
+// İcra akordu: yaygın uygulamada AEU değerinden sapan perdeler (koma, perdenin mod 53 değerine göre).
+// Kaynak: icra ölçümleri üzerine yayınlar ve geleneksel ifade ("Uşşak Segâh'ı pes", "Saba Çargâh'ı pes",
+// "Hüzzam'da Hisar tiz"). Yaklaşıktır; bir hocayla kontrol edilmeli.
+const ICRA = {
+  rast:{ 17:-1, 48:-1 }, ussak:{ 17:-1.5 }, bayati:{ 17:-1.5 }, karcigar:{ 17:-1.5 },
+  huseyni:{ 17:-1.5, 48:-1 }, segah:{ 17:-1, 48:-1 }, huzzam:{ 17:-1, 36:1 },
+  saba:{ 17:-1.5, 22:-1 }, mahur:{ 49:-1 }, suzinak:{ 17:-1 }
+};
+MAKAMS.forEach(m => { m.seyirType = SEYIR_TYPE[m.id]; m.icra = ICRA[m.id] || {}; });
 const makamById = id => MAKAMS.find(m => m.id === id) || null;
+const seyirText = (mk, lang) => lang === "en" && mk.seyirEn ? mk.seyirEn : mk.seyir;
+// Akort bağlamı: makamın perdeleri ve (icra seçiliyse) düzeltmeler
+function tuningCtx(mk, mode){
+  if(!mk) return null;
+  const offsets = {};
+  if(mode === "icra") for(const [c, d] of Object.entries(mk.icra)) offsets[c] = d;
+  return { scale: [...new Set([...mk.asc, ...mk.desc])], offsets };
+}
+// Bir perdenin seçili akorttaki hedefi (koma)
+function perdeTarget(mk, c, mode){
+  if(!mk || mode !== "icra") return c;
+  return c + (mk.icra[((c % 53) + 53) % 53] || 0);
+}
 
 // Koma değerinin AEU perde adı (tam eşleşme yoksa en yakını)
 function perdeName(c){
@@ -291,7 +359,7 @@ function streak(days, today = new Date()){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  MAKAMS, makamById, perdeName, commaToWritten, commaToMidi, judgePerde,
+  MAKAMS, makamById, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, perdeName, commaToWritten, commaToMidi, judgePerde,
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,
   makeMotif, parseMelody, makamExercises, dayKey, streak

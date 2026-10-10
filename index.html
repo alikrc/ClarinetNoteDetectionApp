@@ -46,6 +46,15 @@
       </div>
       <div class="perde resting" id="perde">Rast</div>
       <div class="koma" id="koma">+0,0 koma sapma</div>
+      <div class="ctxrow">
+        <label class="sr" for="tmakam">Makam bağlamı</label>
+        <select id="tmakam"><option value="">Makam: serbest (tüm perdeler)</option></select>
+        <div class="seg" role="radiogroup" aria-label="Akort" id="tuneseg">
+          <button type="button" role="radio" data-tune="aeu">AEU</button>
+          <button type="button" role="radio" data-tune="icra">İcra</button>
+        </div>
+      </div>
+      <div class="reg ctxhint" id="ctxhint" hidden></div>
 
       <div class="meter">
         <div class="track" id="track"><div class="needle" id="needle"></div></div>
@@ -220,6 +229,11 @@
       <span class="label">Akort</span>
       <div class="settings">
         <div class="srow">
+          <label class="label" for="inst">Çalgı</label>
+          <select id="inst"></select>
+          <div class="hint">Yazılı nota ve perde adları seçilen klarnete göre hesaplanır. Parmak şeması Albert sistemdir; parmaklar her Albert klarnette yazılı notaya göre aynıdır.</div>
+        </div>
+        <div class="srow">
           <label class="label" for="a4">Diyapazon (La)</label>
           <span class="stepper">
             <button type="button" class="mini" id="a4dn" aria-label="Diyapazonu yarım Hz düşür">−</button>
@@ -245,6 +259,36 @@
             <div class="lvbar" id="lvbar"></div><div class="lvthr" id="lvthr"></div>
           </div>
           <div class="hint">Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir</div>
+        </div>
+        <div class="srow">
+          <span class="label">Ortam gürültüsüne göre ayarla</span>
+          <button class="stopbtn" id="calib" type="button">Ölç (3 sn sessizlik)</button>
+          <div class="hint" id="calibmsg">Çalmadan bekle; oda gürültüsü ölçülür ve eşik onun biraz üstüne kurulur.</div>
+        </div>
+        <div class="srow">
+          <label class="label" for="aec">Hoparlör modu</label>
+          <input type="checkbox" id="aec" role="switch">
+          <div class="hint">Dron, metronom ya da örnek ses kulaklık yerine hoparlörden çalıyorsa aç: tarayıcının yankı gidericisi uygulamanın kendi sesini mikrofondan çıkarır. Kulaklıkla kapalı kalsın (ses daha temiz ölçülür).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sgroup">
+      <span class="label">Verilerim</span>
+      <div class="settings">
+        <div class="srow">
+          <span class="label">Yedek</span>
+          <span class="trow">
+            <button class="stopbtn" id="bkexport" type="button">Yedeği kaydet</button>
+            <button class="stopbtn" id="bkimport" type="button">Yedekten yükle</button>
+            <input type="file" id="bkfile" accept="application/json,.json" hidden>
+          </span>
+          <div class="hint" id="bkmsg">Dersler, seri, test sonuçları, rekorlar, kendi ezgilerin ve ayarlar tek bir dosyaya yazılır. Telefon değiştirirken ya da uygulamayı silmeden önce yedek al.</div>
+        </div>
+        <div class="srow">
+          <span class="label">Uzman kontrolü</span>
+          <button class="stopbtn" type="button" data-goto="review">Aç</button>
+          <div class="hint">Hocalar ve deneyimli Sol klarnetçiler için: parmak pozisyonlarını, makam dizilerini ve icra düzeltmelerini tek tek doğru/yanlış diye işaretleyip rapor gönderebilirsin.</div>
         </div>
       </div>
     </div>
@@ -290,6 +334,8 @@
       </div>
     </div>
   </section>
+
+  <section id="reviewview" class="sgroup" aria-labelledby="rvlab"></section>
 </div>
 </div>
 
@@ -298,5 +344,6 @@
 <script src="lessons.js"></script>
 <script src="app.js"></script>
 <script src="practice.js"></script>
+<script src="review.js"></script>
 </body>
 </html>
