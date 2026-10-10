@@ -158,7 +158,7 @@
     g.gain.exponentialRampToValueAtTime(0.02 * +$("dronevol").value, a.currentTime + 0.4);
     const oscs = [f, f/2].map(fr => { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr; o.connect(lp); o.start(); return o; });
     lp.connect(g).connect(a.destination);
-    drone = { g, oscs, f };
+    drone = { g, oscs, f }; droneLv = []; SK.droneActive = true;
     $("dronebtn").textContent = "Kapat";
   }
   function stopDrone(){
@@ -168,7 +168,7 @@
       drone.g.gain.setValueAtTime(Math.max(drone.g.gain.value, 0.0001), t);
       drone.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
       drone.oscs.forEach(o => o.stop(t + 0.35));
-      drone = null;
+      drone = null; SK.droneActive = false;
     }
     $("dronebtn").textContent = "Aç";
   }
@@ -177,13 +177,22 @@
   $("dronevol").addEventListener("input", () => { if(drone) drone.g.gain.setTargetAtTime(0.02 * +$("dronevol").value, SK.audioCtx().currentTime, 0.05); });
   $("dronebtn").addEventListener("click", () => drone ? stopDrone() : startDrone());
 
-  // Kayıt dinletilirken ya da dron çalarken mikrofon o sesi nota saymasın
-  let playbackMute = false;
-  SK.ignore = f => {
+  // Kayıt dinletilirken ya da dron çalarken mikrofon o sesi nota saymasın.
+  // Dronun hoparlörden mikrofona sızan seviyesi son 10 saniyenin alt %10'luk dilimiyle (nefes aralarından) izlenir; bunun iki katından
+  // güçlü ses öğrencinin sesidir (durağı dronla birlikte çalmak da ölçülür). Sızıntı düzeyindeki her ölçüm yok sayılır.
+  let playbackMute = false, droneLv = [];
+  SK.on("level", d => {
+    if(!drone) return;
+    droneLv.push(d.rms); if(droneLv.length > 220) droneLv.shift();
+  });
+  const droneFloor = () => droneLv.length < 10 ? Infinity : [...droneLv].sort((a,b) => a-b)[Math.floor(droneLv.length*0.1)];
+  SK.ignore = (f, rms) => {
     if(playbackMute) return true;
     if(!drone) return false;
+    const floor = droneFloor();
+    if(rms < floor*1.3) return true;
     const c = 1200*Math.log2(f/drone.f), r = ((c % 1200) + 1200) % 1200;
-    return Math.min(r, 1200 - r) < 25;
+    return Math.min(r, 1200 - r) < 25 && !(rms > floor*2);
   };
   document.addEventListener("visibilitychange", () => { if(document.hidden){ stopMet(); stopDrone(); } });
 

@@ -1,5 +1,7 @@
 const fs = require('fs');
-const html = fs.readFileSync(require('path').join(__dirname,'index.html'),'utf8');
+const rd = f => fs.readFileSync(require('path').join(__dirname,f),'utf8');
+// Sayfa iskeleti ve ana betik birlikte aranır (index.html + app.js)
+const html = rd('index.html') + rd('app.js');
 const { analyze, parseFingering, detectPitch, midiToFreq, FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE,
         fingeringsFor, fingeringIds, findFingering, nearestPerde, perdeFreq,
         keyInfo, describeFingering, setA4, getA4, sensitivityToRms, NoteStabilizer, noteKey, staffPos } = require('./core.js');
@@ -100,6 +102,26 @@ for(const f0 of [123.47, 146.83, 220.0, 293.66, 440.0, 587.33, 783.99, 987.77, 1
   const d = detectPitch(buf, sr);
   const cents = 1200*Math.log2(d.freq/f0);
   ok(Math.abs(cents) < 5, `${f0} Hz -> ${d.freq.toFixed(2)} Hz`, `(${cents.toFixed(2)} sent sapma, clarity ${d.clarity.toFixed(2)})`);
+}
+
+console.log('\n[5b] Gercekci klarnet sesleri (telefon mikrofonu, vibrato, nefes, yanki, atak)');
+{
+  const A = require('./testaudio.js');
+  const r = A.rng(12345), bad = [], N = 800;
+  for(let k=0;k<N;k++){
+    const c = A.randomCase(r, k);
+    const d = detectPitch(c.buf, c.srate, 100, 2100, 0.002);
+    // Vibratoda anlık perde ±derinlik kadar oynar; hata payı buna göre
+    const cents = 1200*Math.log2(d.freq/c.f0), tol = 10 + c.vib.depth*1200/53;
+    if(!(Math.abs(cents) < tol)) bad.push(`${c.profile} ${c.f0.toFixed(0)}Hz ${c.buf.length}/${c.srate} ${JSON.stringify(c.meta)} -> ${d.freq>0 ? d.freq.toFixed(0) : 'yok'}`);
+  }
+  if(process.env.DETAIL) console.log(bad.join('\n'));
+  ok(bad.length <= N*0.01, `${N} gercekci klarnet sesinin en az %99u dogru perdede (oktav/onikili hatasi yok)`, `${bad.length} hata` + (bad.length ? ': ' + bad.slice(0,3).join(' | ') : ''));
+  const mix = A.voice(new Float32Array(4096), 440, A.PROFILES.ucluAile, 0.3, 48000);
+  ok(Math.abs(detectPitch(mix, 48000, 100, 2100, 0.002).freq - 440) < 1 && detectPitch(mix, 48000, 100, 2100, 0.002, {subharmonic:false}).freq > 1000,
+     'alt harmonik denetimi temel sesi buluyor; kapatilinca (dron acikken) eski davranis');
+  const t0 = Date.now(); for(let i=0;i<100;i++) detectPitch(mix, 48000); const per = (Date.now()-t0)/100;
+  ok(per < 5, 'olcum basina sure kucuk (FFT ile)', per.toFixed(2) + ' ms');
 }
 
 console.log('\n[6] Sessizlik ve gurultu reddi');

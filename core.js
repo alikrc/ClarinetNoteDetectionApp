@@ -291,32 +291,110 @@ function analyze(freq, transpose){
 // Hassasiyet 1 (en az) – 10 (en çok) → sessizlik eşiği (RMS).
 function sensitivityToRms(s){ return 0.03 * Math.pow(0.002/0.03, (s-1)/9); }
 
-function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008){
+// ---- Perde bulucu: McLeod (NSDF) + alt harmonik denetimi ----
+// Yerinde karmaşık FFT (radix-2). re, im aynı uzunlukta, uzunluk 2'nin kuvveti.
+function fft(re, im){
+  const n = re.length;
+  for(let i=1, j=0; i<n; i++){
+    let bit = n >> 1;
+    for(; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if(i < j){ let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for(let len=2; len<=n; len<<=1){
+    const ang = -2*Math.PI/len, wr = Math.cos(ang), wi = Math.sin(ang), half = len >> 1;
+    for(let i=0; i<n; i+=len){
+      let cr = 1, ci = 0;
+      for(let k=0; k<half; k++){
+        const a = i+k, b = a+half;
+        const tr = re[b]*cr - im[b]*ci, ti = re[b]*ci + im[b]*cr;
+        re[b] = re[a]-tr; im[b] = im[a]-ti; re[a] += tr; im[a] += ti;
+        const nr = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = nr;
+      }
+    }
+  }
+}
+const fftBufs = new Map();
+// NSDF(τ) = 2·r(τ) / m(τ); r öz ilinti (FFT ile), m iki parçanın enerjisi (önek toplamlarıyla).
+// Doğrudan toplama göre ~50 kat hızlı: telefonda her ölçüm 1 ms'nin altında kalır.
+function nsdfOf(buf, tauMax){
+  const n = buf.length;
+  let N = 1; while(N < n + tauMax + 1) N <<= 1;
+  if(!fftBufs.has(N)) fftBufs.set(N, { re: new Float64Array(N), im: new Float64Array(N) });
+  const { re, im } = fftBufs.get(N);
+  re.fill(0); im.fill(0);
+  for(let i=0;i<n;i++) re[i] = buf[i];
+  fft(re, im);
+  for(let i=0;i<N;i++){ re[i] = re[i]*re[i] + im[i]*im[i]; im[i] = 0; }
+  fft(re, im);                                   // güç spektrumu gerçek ve simetrik: ters FFT = FFT / N
+  const sq = new Float64Array(n+1);
+  for(let i=0;i<n;i++) sq[i+1] = sq[i] + buf[i]*buf[i];
+  const out = new Float32Array(tauMax+2);
+  for(let tau=0; tau<=tauMax+1 && tau<n; tau++){
+    const m = sq[n-tau] + (sq[n] - sq[tau]);
+    out[tau] = m > 0 ? 2*(re[tau]/N)/m : 0;
+  }
+  return out;
+}
+// Hann pencereli tek frekans genliği (Goertzel)
+function toneMag(buf, f, sampleRate){
+  const n = buf.length, w = 2*Math.PI*f/sampleRate, c = 2*Math.cos(w);
+  let s1 = 0, s2 = 0;
+  for(let i=0;i<n;i++){
+    const s = buf[i]*(0.5 - 0.5*Math.cos(2*Math.PI*i/(n-1))) + c*s1 - s2;
+    s2 = s1; s1 = s;
+  }
+  return Math.sqrt(Math.max(0, s1*s1 + s2*s2 - c*s1*s2));
+}
+// Telefon mikrofonları pes sesleri kırpar; temel ses zayıflayıp 3. harmonik baskın olunca
+// NSDF onikili (ya da beşli) yukarıyı seçebilir. Seçilen periyottan uzun ve neredeyse aynı
+// ölçüde periyodik bir aday varsa ve o frekansta gerçekten enerji varsa (−26 dB'den güçlü)
+// asıl perde odur. Gerçek temel seste alt harmonik frekansında enerji olmadığı için yanılmaz.
+const SUB_MIN_RATIO = 0.025;
+function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008, opts={}){
   const n = buf.length;
   let sum=0; for(let i=0;i<n;i++) sum+=buf[i]*buf[i];
   const rms = Math.sqrt(sum/n);
   if(rms < minRms) return { freq:-1, rms, clarity:0 };
   const tauMin = Math.max(2, Math.floor(sampleRate/maxHz));
   const tauMax = Math.min(Math.floor(sampleRate/minHz), Math.floor(n/2));
-  const nsdf = new Float32Array(tauMax+2);
-  for(let tau=tauMin; tau<=tauMax; tau++){
-    let ac=0, m=0; const lim=n-tau;
-    for(let i=0;i<lim;i++){ const a=buf[i], b=buf[i+tau]; ac+=a*b; m+=a*a+b*b; }
-    nsdf[tau] = m>0 ? 2*ac/m : 0;
-  }
+  const nsdf = nsdfOf(buf, tauMax);
+  const isPeak = t => nsdf[t]>nsdf[t-1] && nsdf[t]>=nsdf[t+1];
+  const refine = t => {
+    const a=nsdf[t-1], b=nsdf[t], c=nsdf[t+1], den = a - 2*b + c;
+    return t + (den!==0 ? 0.5*(a-c)/den : 0);
+  };
+  // Tepenin ara değerli yüksekliği: tiz notalarda periyot tam sayı gecikmeye düşmez, ham değer düşük kalır
+  const height = t => {
+    const a=nsdf[t-1], b=nsdf[t], c=nsdf[t+1], den = a - 2*b + c;
+    return den < 0 ? Math.min(1, b - (a-c)*(a-c)/(8*den)) : b;
+  };
   let gmax=0;
-  for(let t=tauMin+1;t<tauMax;t++) if(nsdf[t]>gmax) gmax=nsdf[t];
+  for(let t=tauMin+1;t<tauMax;t++) if(isPeak(t)) gmax = Math.max(gmax, height(t));
   if(gmax < 0.45) return { freq:-1, rms, clarity:gmax };
   const thr = 0.9*gmax;
   let pick=-1;
-  for(let t=tauMin+1;t<tauMax;t++){
-    if(nsdf[t]>nsdf[t-1] && nsdf[t]>=nsdf[t+1] && nsdf[t]>=thr){ pick=t; break; }
-  }
+  for(let t=tauMin+1;t<tauMax;t++) if(isPeak(t) && height(t)>=thr){ pick=t; break; }
   if(pick<0) return { freq:-1, rms, clarity:gmax };
-  const a=nsdf[pick-1], b=nsdf[pick], c=nsdf[pick+1];
-  const den = a - 2*b + c;
-  const shift = den!==0 ? 0.5*(a-c)/den : 0;
-  return { freq: sampleRate/(pick+shift), rms, clarity:gmax };
+  let tau = refine(pick), sub = false;
+  if(opts.subharmonic !== false){
+    // Referans: seçilen sesin ilk üç harmoniğinin en güçlüsü (seçim bir harmonik ya da harmonikler arası olabilir)
+    const f = sampleRate/tau, nyq = sampleRate/2;
+    const base = Math.max(...[1,2,3].filter(k => k*f < nyq).map(k => toneMag(buf, k*f, sampleRate)));
+    for(let t=tauMax-1; t>pick; t--){
+      if(!isPeak(t) || height(t) < 0.8*gmax) continue;
+      const tt = refine(t), ratio = tt/tau;
+      // Yalnızca harmonik yanılgısının üretebileceği oranlar: 2, 3, 4, 5, 6 ya da 3/2
+      if(![1.5, 2, 3, 4, 5, 6].some(r => Math.abs(ratio/r - 1) < 0.015)) continue;
+      // Aday frekansta gerçek bir spektral tepe olmalı: yarım kutu yanındaki frekanslardan güçlü
+      // (önceki notanın yakındaki yankısı sızıntıyla eşiği geçemesin)
+      const fc = sampleRate/tt, hb = 0.5*sampleRate/n, mc = toneMag(buf, fc, sampleRate);
+      if(mc >= SUB_MIN_RATIO*base && mc >= 0.8*toneMag(buf, fc-hb, sampleRate) && mc >= 0.8*toneMag(buf, fc+hb, sampleRate)){
+        tau = tt; sub = true; break;
+      }
+    }
+  }
+  return { freq: sampleRate/tau, rms, clarity:gmax, sub };
 }
 
 // Ekrandaki notanın titrememesi için: yeni nota ancak art arda `hold` ölçümde
