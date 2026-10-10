@@ -2,7 +2,7 @@
 // Kendi dosyalarımız önce ağdan istenir (güncellemeler hemen gelsin), ağ yoksa önbellekten verilir.
 // Google Fonts dosyaları ilk yüklemede önbelleğe alınır.
 const CACHE = "sol-klarnet-v22";
-const SHELL = ["./", "index.html", "app.css", "app.js", "i18n.js", "core.js", "learn.js", "lessons.js", "skills.js", "repertoire.js", "trainers.js", "pieces.js", "practice.js", "review.js", "manifest.webmanifest", "icon.svg",
+const SHELL = ["./", "index.html", "app.css", "app.js", "i18n.js", "core.js", "learn.js", "lessons.js", "skills.js", "repertoire.js", "trainers.js", "pieces.js", "practice.js", "review.js", "onboard.js", "manifest.webmanifest", "icon.svg",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "privacy.html"];
 
 self.addEventListener("install", e => {

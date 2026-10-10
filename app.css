@@ -512,3 +512,24 @@ svg.score{display:block}
 .score .sn.ok .head{fill:var(--ok)} .score .sn.ok .head.hollow{fill:none;stroke:var(--ok)}
 .score .sn.bad .head{fill:#D2553A} .score .sn.bad .head.hollow{fill:none;stroke:#D2553A}
 .score .sn.miss .head{fill:var(--muted);opacity:.5}
+
+/* Karşılama */
+.onboard{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--paper) 70%,transparent);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:grid;place-items:center;
+  padding:calc(16px + var(--sat)) calc(16px + var(--sar)) calc(16px + var(--sab)) calc(16px + var(--sal));overflow-y:auto}
+body.modal{overflow:hidden}
+.obcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:520px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:12px}
+.obcard p{margin:0;font-size:14px;line-height:1.6}
+.obtitle{font:700 24px/1.2 var(--display);margin:0;letter-spacing:-.01em}
+.obdots{display:flex;gap:6px}
+.obdots i{width:24px;height:4px;border-radius:2px;background:var(--line)}
+.obdots i.on{background:var(--accent)} .obdots i.done{background:var(--teal)}
+.oblist{display:flex;flex-direction:column;gap:8px}
+.obopt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--line);background:var(--sunk);
+  color:var(--ink);border-radius:12px;padding:12px 14px;font:500 13px/1.4 var(--ui)}
+.obopt strong{font-size:15px}
+.obopt span{color:var(--muted)}
+.obopt[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.obnav{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
+.goalok{color:var(--ok);font-weight:600}

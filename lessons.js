@@ -930,13 +930,23 @@ function dailyPlan(ctx){
   }
   // 3–4. Makam: bitirilen makam derslerinden biri; hiç yoksa bilinen notalarla çıkış-iniş ve taklit
   const mks = LESSONS.filter(l => l.makam && l.id !== "rast-giris" && lessonDone(l, ctx.prog)).map(l => l.makam);
+  const done = id => { const l = lessonById(id); return !!l && lessonDone(l, ctx.prog); };
+  let mk = null;
   if(mks.length){
-    const mk = mks[Math.floor(rng()*mks.length)];
+    mk = mks[Math.floor(rng()*mks.length)];
     steps.push({ type:"scale", makam:mk, min:0.6 });
     steps.push({ type:"mimic", makam:mk, len:5 });
   }else if(known.length >= 3){
     steps.push({ type:"notes", notes:[...known, ...[...known].reverse().slice(1)], maxMiss:3 });
   }
+  // 5. Ritim: ritim dersi bitmişse kısa bir tur (tempo her gün biraz değişir)
+  if(done("ritim-temel")) steps.push({ type:"rhythm", pattern: rng() < 0.5 ? "quarter" : "eighth", tempo: 70 + 10*Math.floor(rng()*3), bars:4, min:60 });
+  // 6. Eser: makamın etüdü tempolu
+  if(mk && LREP().etudeById("e-" + mk)) steps.push({ type:"piece", id:"e-" + mk, mode:"tempo", min:65 });
+  // 7. Kulak: perde ayırt (ileri kulak dersi bittiyse tek koma)
+  if(done("kulak-1")) steps.push({ type:"ear", mode:"abx", level: done("kulak-2") ? 3 : 2, n:6, min:4 });
+  // 8. Seyir: taksime giriş bittiyse bugünün makamında kısa serbest çalma
+  if(mk && done("taksim-giris")) steps.push({ type:"seyir", makam:mk, sec:45, min:55 });
   return { id:"daily", unit:null, notes:[], daily:true,
            title:{ tr:"Bugünün çalışması", en:"Today's practice" },
            text:[{ tr:"Bitirdiğin derslerden her gün yeniden kurulan kısa bir program: zorlandığın notalar ve perdeler öne çıkar.",

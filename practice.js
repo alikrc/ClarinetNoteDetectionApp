@@ -26,7 +26,7 @@
   root.innerHTML = `
     <div class="phead">
       <div class="label">Çalışma</div>
-      <span class="reg" id="pmic"></span>
+      <span class="reg"><span id="pgoal"></span> · <span id="pmic"></span></span>
     </div>
     <div class="tools">
       <div class="tool">
@@ -200,6 +200,15 @@
   };
   document.addEventListener("visibilitychange", () => { if(document.hidden){ stopMet(); stopDrone(); } });
 
+  // Günlük hedef: bugünkü sesli çalma süresi / hedef (dakika)
+  function goalText(){
+    const goal = store.get("goal.min", 15), today = Math.floor((days[dayKey(new Date())] || 0)/60);
+    const el = $("pgoal"); if(!el) return;
+    el.textContent = L("Bugün ", "Today ") + today + "/" + goal + L(" dk", " min") + (today >= goal ? " ✓" : "");
+    el.classList.toggle("goalok", today >= goal);
+  }
+  setInterval(goalText, 5000);
+
   // ---- Her zaman çalışanlar: entonasyon istatistiği, pratik süresi, vibrato, glissando ----
   const intStats = store.get("int.stats", {});
   let intDirty = false;
@@ -208,6 +217,7 @@
   SK.on("silence", () => collector.flush());
 
   const days = store.get("days", {});
+  goalText();
   let lastRaw = 0, unsaved = 0;
   SK.on("raw", d => {
     const dt = d.t - lastRaw; lastRaw = d.t;
@@ -759,6 +769,22 @@
     return {};
   })();
 
+  // İlerleme sayfası: ritim, kulak, seyir ve eser sonuçları
+  function moreStats(){
+    const rh = store.get("rhythm.hist", []), ear = store.get("ear.best", {}), sy = store.get("seyir.hist", []), pb = store.get("piece.best", {});
+    const avg = a => a.length ? Math.round(a.reduce((x, y) => x + y, 0)/a.length) : null;
+    const last10 = rh.slice(-10).map(x => x.score), sy10 = sy.slice(-10).map(x => x.score);
+    const syBy = {}; sy.forEach(x => { syBy[x.mk] = Math.max(syBy[x.mk] || 0, x.score); });
+    const goal = store.get("goal.min", 15);
+    const week = (() => { let n = 0; for(let k=0;k<7;k++){ const d = new Date(); d.setDate(d.getDate()-k); if((days[dayKey(d)] || 0) >= goal*60) n++; } return n; })();
+    return `<div class="label">${L("Günlük hedef", "Daily goal")}</div>
+      <p>${goal} ${L("dk · son 7 günün ", "min · reached on ")}${week}${L("'sinde tuttu", " of the last 7 days")} <button class="stopbtn" type="button" id="pggoal">${L("Değiştir", "Change")}</button></p>
+      <div class="label">${L("Ritim", "Rhythm")}</div><p>${rh.length ? L("son 10 tur ortalaması ", "last 10 rounds average ") + "<strong>" + avg(last10) + "</strong> · " + L("en iyi ", "best ") + store.get("rhythm.best", 0) + " · " + rh.length + L(" tur", " rounds") : "—"}</p>
+      <div class="label">${L("Kulak", "Ear")}</div><p>${ear.pitch != null ? L("ayırt edebildiğin en küçük fark ", "smallest difference you can hear ") + "<strong>" + num(ear.pitch) + L(" koma</strong>", " commas</strong>") : "—"}${ear.makam ? " · " + L("makam tanıma rekoru ", "makam ID record ") + ear.makam : ""}</p>
+      <div class="label">${L("Seyir (taksim)", "Seyir (taksim)")}</div><p>${sy.length ? L("son 10 ortalama ", "last 10 average ") + "<strong>" + avg(sy10) + "</strong> · " + Object.entries(syBy).map(([id, v]) => makamById(id).name + " " + v).join(" · ") : "—"}</p>
+      <div class="label">${L("Eserler (tempolu, en iyi)", "Pieces (in tempo, best)")}</div><p>${Object.entries(pb).map(([id, v]) => { const e = etudeById(id); return (e ? pick(e.name, LANG) : id) + " %" + v; }).join(" · ") || "—"}</p>`;
+  }
+
   // ======== 7. İlerleme ========
   modules.progress = (() => {
     const P = $("pp-progress");
@@ -802,6 +828,7 @@
         <div class="label">Entonasyon (en az 0,3 sn tutulan notalar)</div>
         <p>Tiz çaldıkların: ${fmtI(sharp)}</p><p>Pes çaldıkların: ${fmtI(flat)}</p>
         <div class="label">Makam alıştırmaları</div><p>${mk.join(" · ") || "—"}</p>
+        ${moreStats()}
         <div class="pbar"><button class="stopbtn" id="rsint" type="button">Entonasyon istatistiğini sıfırla</button>
         <button class="stopbtn" id="rsall" type="button">Tüm ilerlemeyi sıfırla</button></div>
         <div class="muted small">Tüm veriler yalnızca bu cihazda, tarayıcıda saklanır.</div>`;
@@ -818,6 +845,11 @@
         location.reload();
       });
     }
+    P.addEventListener("click", e => {
+      if(!e.target.closest("#pggoal")) return;
+      const v = prompt(L("Günlük hedef (dakika):", "Daily goal (minutes):"), store.get("goal.min", 15));
+      const n = Math.round(+v); if(n >= 1 && n <= 240){ store.set("goal.min", n); render(); goalText(); }
+    });
     return { enter: render };
   })();
 

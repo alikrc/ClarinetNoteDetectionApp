@@ -17,6 +17,7 @@
 </head>
 <body data-view="tune">
 
+<div class="onboard" id="onboard" hidden role="dialog" aria-modal="true" aria-label="Karşılama"><div class="obcard"></div></div>
 <div class="app">
   <header class="appbar">
     <div class="brand">
@@ -330,7 +331,7 @@
           <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_4.html" target="_blank" rel="noopener">4</a>) tablolarından; yalnızca Albert sistemde çalınabilen parmaklar alındı; mandal adları <a href="https://www.wfg.woodwind.org/clarinet/cl_fing.html" target="_blank" rel="noopener">WFG mandal açıklamasına</a> göre.
           Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.
         </footer>
-        <div class="aboutlinks"><a href="privacy.html">Gizlilik politikası</a></div>
+        <div class="aboutlinks"><a href="privacy.html">Gizlilik politikası</a> <button class="stopbtn" id="obagain" type="button">Karşılamayı yeniden aç</button></div>
       </div>
     </div>
   </section>
@@ -349,5 +350,6 @@
 <script src="app.js"></script>
 <script src="practice.js"></script>
 <script src="review.js"></script>
+<script src="onboard.js"></script>
 </body>
 </html>
