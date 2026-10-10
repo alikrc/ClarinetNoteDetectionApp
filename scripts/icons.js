@@ -1,5 +1,5 @@
 // icon.svg'den PNG simgeleri üretir: web manifest (192/512, maskable), Play Store (512)
-// ve Android başlatıcı simgeleri (eski tip, yuvarlak, uyarlanabilir ön plan).
+// Android başlatıcı simgeleri (eski tip, yuvarlak, uyarlanabilir ön plan), iOS simgesi ve açılış ekranı.
 // Kullanım: npm run icons  (icon.svg değişince yeniden çalıştır, çıktılar depoya girer)
 const fs = require("fs");
 const path = require("path");
@@ -28,6 +28,10 @@ const png = (src, size, out) => {
   return sharp(src, { density: 384 }).resize(size, size).png().toFile(out);
 };
 
+// iOS: köşesiz, saydamsız 1024 px simge (köşeleri sistem yuvarlar); açılış ekranı açık zemin + ortada küçük simge
+const IOS = path.join(ROOT, "ios/App/App/Assets.xcassets");
+const SPLASH = wrap(`<g transform="translate(256 256) scale(0.14) translate(-256 -256)">${fs.readFileSync(path.join(ROOT, "icon.svg"), "utf8").replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "")}</g>`, `<rect width="512" height="512" fill="#ECEFEE"/>`);
+
 const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
 
 (async () => {
@@ -42,6 +46,11 @@ const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
     jobs.push(png(ROUNDED, 48 * k, path.join(dir, "ic_launcher.png")));
     jobs.push(png(CIRCLE, 48 * k, path.join(dir, "ic_launcher_round.png")));
     jobs.push(png(FOREGROUND, 108 * k, path.join(dir, "ic_launcher_foreground.png")));
+  }
+  if(fs.existsSync(IOS)){
+    jobs.push(png(SQUARE, 1024, path.join(IOS, "AppIcon.appiconset/AppIcon-512@2x.png")));
+    for(const f of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"])
+      jobs.push(png(SPLASH, 2732, path.join(IOS, "Splash.imageset", f)));
   }
   await Promise.all(jobs);
   console.log(`${jobs.length} simge üretildi`);
