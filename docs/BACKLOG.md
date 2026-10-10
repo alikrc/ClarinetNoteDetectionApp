@@ -1,5 +1,38 @@
 # Sol Klarnet — Backlog
 
+## Kapsamlı iyileştirme — tamamlandı (10 Ekim 2026)
+
+- Perde bulucu: FFT ile NSDF, telefon mikrofonunun pes sesi kırpmasına karşı alt harmonik denetimi, tizde kısa pencere;
+  800 gerçekçi sentetik seste eski bulucu 190, yeni bulucu 3 hata. Gerçek kayıtlar için `npm run audio-check`
+- Makam bağlamı ve icra akordu; 10 yeni makam (toplam 19), her birinin seyir türü
+- Ritim (kalıplar, usuller, iç tempo, gecikme ayarı), kulak eğitimi (koma eşiği, ABX, makam tanı), seyir/taksim analizi,
+  ses kalitesi (netlik, ses gücü dengesi), dinamik (crescendo/decrescendo/messa di voce)
+- Eserler: koma işaretli dizek, 14 özgün etüt, MusicXML/.mxl içe aktarma, tempolu çalma değerlendirmesi
+- Müfredat 21 → 46 ders (Başlarken ve İleri seviye üniteleri dahil); günlük plan yeni becerileri de içeriyor
+- Karşılama akışı, günlük hedef ve hatırlatma, yedekleme/geri yükleme, kaydı paylaşma, uzman kontrolü ekranı
+- Çalgı seçimi (Sol, Si♭, La, Do, Mi♭), hoparlör modu (yankı giderme), ortam gürültüsüne göre hassasiyet
+- Fontlar uygulamanın içinde, internet izni yok; iOS projesi; İngilizce arayüzde eksik çeviri kalmadı
+
+## İnsan gerektiren işler (kodla çözülemez)
+
+1. **Uzman doğrulaması:** Bir Sol klarnet hocası Ayarlar → Uzman kontrolü ekranından 124 parmağı, 19 makamın dizisini,
+   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. Ders metinleri ve 14 etüt de gözden geçirilmeli.
+   Yanlış bulunanlar `core.js` (FINGERINGS, ALT_FINGERINGS), `learn.js` (MAKAMS, SEYIR_TYPE, ICRA) ve
+   `repertoire.js` (ETUDES) içinde düzeltilir; testler tutarlılığı denetler.
+2. **Gerçek kayıtlar:** `testdata/README.md` içindeki listeye göre telefonla kayıt toplanıp `npm run audio-check` çalıştırılmalı.
+3. **WFG izni:** Parmak verisi Woodwind Fingering Guide'dan; ücretli yayınlanacaksa sahibinden izin istenmeli.
+4. **Mağaza:** Play geliştirici hesabı, yükleme anahtarı, kapalı test; iOS için Mac + Xcode + Apple geliştirici hesabı;
+   mağaza ekran görüntüleri ve tanıtım görseli.
+5. **Repertuvar:** Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
+   seçki eklenecekse lisans koşulları kontrol edilmeli.
+
+## Sonraki adım fikirleri
+
+- Nim perdeler için çeyrek ses parmakları (WFG `ocl_qt_1`)
+- Hocanın öğrenciye ödev ve etüt gönderebileceği paylaşım bağlantıları
+- Kayıt üzerinde perde eğrisi (zaman–koma grafiği) ve hocanın işaret koyabilmesi
+
+
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/f9c1b6aa-5fdc-475c-914d-1701a7b8a2b9)
 
 ## Dersler — tamamlandı (4 Ekim 2026)

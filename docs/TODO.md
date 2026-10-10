@@ -7,9 +7,9 @@
 Bu beş madde alan adı kararından bağımsız; web sürümünü de iyileştirir ve önce bunlar yapılmalı.
 
 - [x] **PNG simgeler:** 192 ve 512 piksellik PNG simge, ayrıca kenarları kırpılabilen "maskable" sürüm (şu an yalnızca SVG var).
-- [ ] **Manifest'i tamamla:** `id` alanı eklendi; kalan: telefon ekran görüntüleri ve kısayol tanımları.
-- [ ] **Mobil görünüm:** Telefonda alt sekme geçişi ("Akort | Parmak"); çentikli ekranlar için güvenli alan boşlukları; aşağı çekince yenilemenin kapatılması. Geniş ekranda iki sütunlu düzen aynı kalır.
-- [ ] **Fontları uygulamanın içine al:** Google Fonts yerine dosyaları depoya koy; internetsiz ilk açılışta da doğru fontla açılsın.
+- [ ] **Manifest'i tamamla:** `id` ve kısayollar (Akort, Dersler, Ritim, Eserler) eklendi; kalan: telefon ekran görüntüleri.
+- [x] **Mobil görünüm:** Telefonda alt sekme geçişi ("Akort | Parmak"); çentikli ekranlar için güvenli alan boşlukları; aşağı çekince yenilemenin kapatılması. Geniş ekranda iki sütunlu düzen aynı kalır.
+- [x] **Fontları uygulamanın içine al:** `fonts/` (`npm run fonts`); internet izni kaldırıldı.
 - [x] **Gizlilik politikası sayfası:** (privacy.html) "Ses cihazda işlenir, hiçbir yere gönderilmez" diyen basit bir sayfa; mikrofon kullanan uygulamalar için Play Store zorunlu tutuyor.
 
 ## Android paketi — Capacitor (6 Ekim 2026)
@@ -24,6 +24,11 @@ Ayrıntılar ve yayın adımları: [ANDROID.md](ANDROID.md).
 - [ ] **Kapalı test:** Yeni kişisel hesaplarda üretimden önce zorunlu; Play Console'da güncel şartı kontrol et.
 - [ ] **Mağaza malzemeleri:** Telefon ekran görüntüleri, 1024×500 tanıtım görseli, kısa ve uzun açıklama.
 - [ ] **Formlar:** İçerik derecelendirme anketi ve veri güvenliği formu (veri toplanmaz).
+
+## iOS (10 Ekim 2026)
+
+- [x] Capacitor iOS projesi, mikrofon izni açıklaması, simge ve açılış ekranı ([IOS.md](IOS.md))
+- [ ] Mac + Xcode ile derleme, Apple geliştirici hesabı, TestFlight, App Store
 
 ## Notlar
 

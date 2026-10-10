@@ -5,7 +5,8 @@ internetsiz de açılır ve alan adı ya da `assetlinks.json` gerekmez (TWA yakl
 
 - Paket adı: `com.alikrc.solklarnet` (Play'e ilk yüklemeden sonra değiştirilemez)
 - `minSdk 24` (Android 7), `targetSdk 36`
-- İzinler: `RECORD_AUDIO` (akort), `INTERNET` (yalnızca Google Fonts)
+- İzinler: `RECORD_AUDIO` (akort), `POST_NOTIFICATIONS` ve `RECEIVE_BOOT_COMPLETED` (günlük hatırlatma); internet izni yok
+- Eklentiler: `@capacitor/filesystem` ve `@capacitor/share` (yedek, kayıt ve rapor paylaşımı), `@capacitor/local-notifications` (hatırlatma; tam zamanlı alarm izni bilerek çıkarıldı)
 - Uygulamada service worker kullanılmaz; arka plana geçince mikrofon kapanır
 
 ## Geliştirme
@@ -29,8 +30,8 @@ Web kodunda her değişiklikten sonra `npm run android:sync` çalıştırılmal�
    ```
    `android/keystore.properties.example` dosyasını `android/keystore.properties` olarak kopyalayıp şifreleri yaz
    (bu dosya depoya girmez).
-2. **Sürüm numarası:** `android/app/build.gradle` içinde her yüklemede `versionCode` bir artırılır,
-   `versionName` görünen sürümdür.
+2. **Sürüm numarası:** `npm run release -- 1.1.0` hem `versionCode`'u artırır hem `versionName`'i, service worker
+   önbelleğini ve iOS sürümünü günceller.
 3. **Paket:** `npm run android:bundle` → `android/app/build/outputs/bundle/release/app-release.aab`
 4. **Play Console:** Play App Signing açık kalsın; AAB'yi önce kapalı teste yükle.
 
@@ -40,6 +41,6 @@ Web kodunda her değişiklikten sonra `npm run android:sync` çalıştırılmal�
   `https://alikrc.github.io/Sol-Klarnet/privacy.html`)
 - **Uygulama simgesi:** `store/play-icon-512.png`
 - **Tanıtım görseli** 1024×500 ve en az 2 telefon ekran görüntüsü (henüz yok)
-- **Veri güvenliği formu:** veri toplanmıyor ve paylaşılmıyor; mikrofon sesi yalnızca cihazda işleniyor
+- **Veri güvenliği formu:** veri toplanmıyor ve paylaşılmıyor; mikrofon sesi yalnızca cihazda işleniyor; internet izni yok
 - **İçerik derecelendirmesi:** herkes; kategori: Müzik ve Ses ya da Eğitim
 - Yeni kişisel geliştirici hesaplarında üretime geçmeden önce kapalı test şartı var (Play Console'da güncelini kontrol et)
