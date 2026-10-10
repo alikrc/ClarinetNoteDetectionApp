@@ -32,6 +32,31 @@ const REG_EN = { Chalumeau:"Chalumeau", Klarino:"Clarion", Altissimo:"Altissimo"
 const FINGER_EN = { "işaret":"index", "orta":"middle", "yüzük":"ring" };
 
 const EXACT = {
+  // Ayarlar ve akort kartı (2026-10 eklemeleri)
+  "Makam bağlamı": "Makam context",
+  "Makam: serbest (tüm perdeler)": "Makam: free (all perdes)",
+  "Çalgı": "Instrument",
+  "Yazılı nota ve perde adları seçilen klarnete göre hesaplanır. Parmak şeması Albert sistemdir; parmaklar her Albert klarnette yazılı notaya göre aynıdır.":
+    "Written notes and perde names are computed for the selected clarinet. The fingering chart is Albert system; fingerings follow the written note on every Albert clarinet.",
+  "Ortam gürültüsüne göre ayarla": "Set from room noise",
+  "Ölç (3 sn sessizlik)": "Measure (3 s of silence)",
+  "Çalmadan bekle; oda gürültüsü ölçülür ve eşik onun biraz üstüne kurulur.": "Wait without playing; the room noise is measured and the threshold is set just above it.",
+  "Hoparlör modu": "Speaker mode",
+  "Dron, metronom ya da örnek ses kulaklık yerine hoparlörden çalıyorsa aç: tarayıcının yankı gidericisi uygulamanın kendi sesini mikrofondan çıkarır. Kulaklıkla kapalı kalsın (ses daha temiz ölçülür).":
+    "Turn on if the drone, metronome or reference notes play through the speaker instead of headphones: the browser's echo canceller removes the app's own sound from the microphone. Leave it off with headphones (cleaner measurement).",
+  "Verilerim": "My data",
+  "Yedek": "Backup",
+  "Yedeği kaydet": "Save backup",
+  "Yedekten yükle": "Restore backup",
+  "Dersler, seri, test sonuçları, rekorlar, kendi ezgilerin ve ayarlar tek bir dosyaya yazılır. Telefon değiştirirken ya da uygulamayı silmeden önce yedek al.":
+    "Lessons, streak, quiz results, records, your own pieces and settings are written to a single file. Back up before changing phones or uninstalling.",
+  "Uzman kontrolü": "Expert review",
+  "Göster": "Open",
+  "İcra": "Practice",
+  "Hocalar ve deneyimli Sol klarnetçiler için: parmak pozisyonlarını, makam dizilerini ve icra düzeltmelerini tek tek doğru/yanlış diye işaretleyip rapor gönderebilirsin.":
+    "For teachers and experienced G clarinettists: mark each fingering, makam scale and practice-tuning adjustment as right or wrong and send a report.",
+  "Karşılamayı yeniden aç": "Show the welcome again",
+  "Karşılama": "Welcome",
   // Başlık ve ayarlar
   "Sol Klarnet — Akort, Parmak, Makam": "Turkish G Clarinet — Tuner, Fingerings, Makam",
   "Sol Klarnet": "Turkish G Clarinet",
@@ -322,7 +347,14 @@ function L(tr, en){ return LANG === "en" ? en : tr; }
 if(LANG === "en"){
   document.title = EXACT["Sol Klarnet — Akort, Parmak, Makam"];
   const ATTRS = ["aria-label", "title", "placeholder"];
-  const doText = n => { if(n.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)) return; const t = translate(n.data); if(t !== n.data) n.data = t; };
+  // Çevrilemeyen Türkçe metinler (geliştirici denetimi için): window.SK_I18N_MISSING
+  const missing = window.SK_I18N_MISSING = new Set();
+  const doText = n => {
+    if(n.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)) return;
+    const t = translate(n.data);
+    if(t !== n.data) n.data = t;
+    else if(/[çğıöşüÇĞİÖŞÜ]/.test(t)) missing.add(norm(t));
+  };
   const doAttrs = el => { for(const a of ATTRS){ const v = el.getAttribute && el.getAttribute(a); if(v){ const t = translate(v); if(t !== v) el.setAttribute(a, t); } } };
   const walk = root => {
     if(root.nodeType === 3){ doText(root); return; }

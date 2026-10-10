@@ -111,7 +111,7 @@
         const item = document.createElement("div"); item.className = "rvitem";
         item.appendChild(chart(fg.code));
         const side = document.createElement("div");
-        const steps = describeFingering(fg.code).filter(r => r.active).map(r => `<li><b>${esc(r.part)}</b>: ${esc(r.text)}</li>`).join("");
+        const steps = describeFingering(fg.code).filter(r => r.active).map(r => `<li><b>${esc(r.part)}</b> <span>${esc(r.text)}</span></li>`).join("");
         side.innerHTML = `<div class="label">${i ? L("Alternatif ", "Alternative ") + i : L("Temel parmak", "Basic fingering")}</div>
           <code class="fcode">${esc(fg.code)}</code>${fg.note ? `<p class="muted">${esc(fg.note)}</p>` : ""}
           <ul class="rvsteps">${steps || `<li>${L("Hiçbir şey basılı değil", "Nothing pressed")}</li>`}</ul>

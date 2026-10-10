@@ -298,7 +298,8 @@
   modules.quiz = (() => {
     const P = $("pp-quiz");
     P.innerHTML = `
-      <p class="pdesc">Ezberini sına: <strong>Çal</strong> modunda istenen notayı klarnette çal, <strong>Bul</strong> modunda şemadaki parmağın hangi nota olduğunu seç (ya da çal). ${L("<strong>Oku</strong> modunda dizekteki notayı adını görmeden çal. ", "In <strong>Read</strong> mode play the note on the staff without seeing its name. ")}Zorlandığın notalar daha sık gelir. Bir bölgede son 20 cevabın %80'i doğruysa sonraki bölge açılır.</p>
+      <p class="pdesc">${L("Ezberini sına: <strong>Çal</strong> modunda istenen notayı klarnette çal, <strong>Bul</strong> modunda şemadaki parmağın hangi nota olduğunu seç (ya da çal), <strong>Oku</strong> modunda dizekteki notayı adını görmeden çal. Zorlandığın notalar daha sık gelir. Bir bölgede son 20 cevabın %80'i doğruysa sonraki bölge açılır.",
+        "Test your memory: in <strong>Play</strong> mode play the requested note, in <strong>Identify</strong> mode pick the note shown by the fingering chart (or play it), in <strong>Read</strong> mode play the note on the staff without seeing its name. Notes you struggle with come up more often. A region unlocks the next one when 80% of your last 20 answers there are correct.")}</p>
       <div class="pbar">
         <div class="seg" role="radiogroup" aria-label="Test modu" id="qmode">
           <button type="button" role="radio" data-m="play">Çal</button>
