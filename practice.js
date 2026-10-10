@@ -21,7 +21,7 @@
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
   const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["long","Uzun ton"],["makam","Makam"],["mimic","Taklit"],
                 ["rhythm",L("Ritim", "Rhythm")],["ear",L("Kulak", "Ear")],["seyir",L("Seyir", "Seyir")],
-                ["piece","Eser takibi"],["rec","Kayıt"],["progress","İlerleme"]];
+                ["piece",L("Eserler", "Pieces")],["rec","Kayıt"],["progress","İlerleme"]];
   const root = $("practice");
   root.innerHTML = `
     <div class="phead">
@@ -676,112 +676,6 @@
     };
   })();
 
-  // ======== 5. Eser takibi ========
-  modules.piece = (() => {
-    const P = $("pp-piece");
-    P.innerHTML = `
-      <p class="pdesc">Notalar sırayla gelir; doğru notayı çalınca bir sonrakine geçer. Tempo yok, acele etme. Kendi ezgini yazılı nota adlarıyla ekleyebilirsin (ör. <code>Sol4 La4 Si♭4 Do5</code>; diyez için ♯ ya da #, bemol için ♭ ya da b).</p>
-      <div class="pbar">
-        <select id="pcsel" aria-label="Ezgi"></select>
-        <label class="chk"><input type="checkbox" id="pcfing"> parmağı göster</label>
-        <button class="stopbtn" id="pchear" type="button">Notayı duy</button>
-        <button class="primary small" id="pcstart" type="button">Baştan başla</button>
-      </div>
-      <div class="stage" id="pcstage"></div>
-      <details class="pcadd"><summary>Kendi ezgini ekle</summary>
-        <div class="pbar"><input id="pcname" type="text" placeholder="Ezginin adı" aria-label="Ezginin adı"></div>
-        <textarea id="pctext" rows="3" placeholder="Sol4 La4 Si4 Do5 Re5" aria-label="Notalar"></textarea>
-        <div class="pbar"><button class="stopbtn" id="pcsave" type="button">Kaydet</button>
-        <button class="stopbtn" id="pcdel" type="button">Seçili kendi ezgimi sil</button>
-        <span class="muted" id="pcmsg"></span></div>
-      </details>`;
-    const stage = $("pcstage");
-    let user = store.get("piece.user", []);
-    let cur = null;
-    const hold = holder();
-    function all(){
-      return [...user.map((p, i) => ({ ...p, key:"u"+i, own:true })),
-              ...MAKAMS.flatMap(mk => makamExercises(mk).map((p, i) => ({ ...p, key: mk.id + i })))];
-    }
-    function fillSel(keep){
-      $("pcsel").innerHTML = all().map(p => `<option value="${p.key}">${p.own ? "★ " : ""}${esc(p.name)} (${p.notes.length} nota)</option>`).join("");
-      if(keep) $("pcsel").value = keep;
-    }
-    fillSel(store.get("piece.sel", null));
-    $("pcfing").checked = store.get("piece.fing", true);
-    $("pcfing").addEventListener("change", () => store.set("piece.fing", $("pcfing").checked));
-    $("pcsel").addEventListener("change", () => { store.set("piece.sel", $("pcsel").value); load(); });
-    function load(){
-      const p = all().find(x => x.key === $("pcsel").value) || all()[0];
-      cur = { p, i:0, miss:0, t0:null, release:false };
-      stage.innerHTML = `<div class="qcount" id="pccount"></div><div class="chiprow scroll" id="pcrow">${p.notes.map((w, i) =>
-        `<span class="pchip" id="pc${i}"><b>${nn(w)}</b><small>${perdeOf(w)}</small></span>`).join("")}</div>
-        <div class="fb" id="pcfb" aria-live="polite"></div>`;
-      focus();
-    }
-    function focus(){
-      document.querySelectorAll("#pcrow .pchip").forEach((el, i) => { el.classList.toggle("cur", i === cur.i); el.classList.toggle("good", i < cur.i); });
-      const el = $("pc"+cur.i); if(el) el.scrollIntoView({ block:"nearest", inline:"center" });
-      $("pccount").textContent = "Nota " + Math.min(cur.i+1, cur.p.notes.length) + "/" + cur.p.notes.length + " · " + cur.miss + " hata";
-      if($("pcfing").checked && cur.i < cur.p.notes.length && !SK.playing()) SK.showNote(cur.p.notes[cur.i]);
-    }
-    $("pcstart").addEventListener("click", async () => { await needMic(); load(); });
-    $("pchear").addEventListener("click", async () => {
-      if(!cur || cur.i >= cur.p.notes.length) return;
-      const w = cur.p.notes[cur.i]; SK.play(w); await sleep(900); if(SK.playing() === w) SK.stopSound();
-    });
-    $("pcsave").addEventListener("click", () => {
-      const { notes, errors } = parseMelody($("pctext").value);
-      const bad = notes.filter(w => w < LOW_NOTE || w > HIGH_NOTE);
-      if(errors.length || bad.length || !notes.length){
-        $("pcmsg").textContent = errors.length ? "Okunamadı: " + errors.join(" ") : bad.length ? "Aralık dışı: " + bad.map(nn).join(" ") + " (Mi3–Mi♭7)" : "Nota yok.";
-        return;
-      }
-      user.push({ name: $("pcname").value.trim() || _t("Ezgim " + (user.length+1)), notes });
-      store.set("piece.user", user);
-      fillSel("u" + (user.length-1)); store.set("piece.sel", $("pcsel").value); load();
-      $("pcmsg").textContent = notes.length + " nota kaydedildi.";
-    });
-    $("pcdel").addEventListener("click", () => {
-      const k = $("pcsel").value;
-      if(!k.startsWith("u")){ $("pcmsg").textContent = "Yalnızca ★ işaretli kendi ezgilerin silinir."; return; }
-      if(!confirm(_t("Bu ezgi silinsin mi?"))) return;
-      user.splice(+k.slice(1), 1); store.set("piece.user", user); fillSel(); load();
-    });
-    // Kayıt sekmesinden gelen notalar
-    SK.addPiece = (name, notes) => { user.push({ name, notes }); store.set("piece.user", user); fillSel("u" + (user.length-1)); store.set("piece.sel", $("pcsel").value); };
-    return {
-      enter(){ if(!cur) load(); },
-      note(r, t){
-        if(!cur || cur.i >= cur.p.notes.length || !r.inRange) return;
-        const h = hold.push(r.written, t), want = cur.p.notes[cur.i];
-        if(cur.release){ if(r.written !== cur.p.notes[cur.i-1]) cur.release = false; else return; }
-        if(h.fired) return;
-        if(r.written === want && h.ms >= 200){
-          hold.fire();
-          if(cur.t0 === null) cur.t0 = t;
-          cur.i++;
-          // Aynı nota tekrar ediyorsa önce bırakılması (sessizlik ya da başka nota) beklenir
-          cur.release = cur.i < cur.p.notes.length && cur.p.notes[cur.i] === want;
-          if(cur.i >= cur.p.notes.length){
-            focus();
-            $("pcfb").className = "fb good";
-            $("pcfb").textContent = "Bitti! " + cur.miss + " hata · " + num((t - cur.t0)/1000) + " sn";
-            const done = store.get("piece.done", 0); store.set("piece.done", done + 1);
-            return;
-          }
-          $("pcfb").className = "fb"; $("pcfb").textContent = "";
-          focus();
-        }else if(r.written !== want && h.ms >= 400){
-          hold.fire(); cur.miss++;
-          $("pcfb").className = "fb bad"; $("pcfb").textContent = nn(r.written) + " çaldın; sıradaki " + nn(want) + ".";
-          focus();
-        }
-      },
-      silence(){ hold.reset(); if(cur) cur.release = false; }
-    };
-  })();
-
   // ======== 6. Kayıt ve nota dökümü ========
   modules.rec = (() => {
     const P = $("pp-rec");
@@ -933,6 +827,7 @@
   modules.rhythm = TRAINERS.rhythm(tctx);
   modules.ear = TRAINERS.ear(tctx);
   modules.seyir = TRAINERS.seyir(tctx);
+  modules.piece = TRAINERS.piece(tctx);
 
   // ======== 0. Dersler ========
   modules.lessons = (() => {
@@ -1004,6 +899,7 @@
         case "rhythm": case "seyir": return r.v + L(" puan", " points");
         case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
         case "ear": return r.v + "/" + st.n;
+        case "piece": return st.mode === "free" ? r.v + L(" hata", " mistakes") : "%" + r.v;
       }
       return "";
     }

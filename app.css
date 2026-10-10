@@ -491,3 +491,24 @@ canvas.dyncv{width:100%;max-width:300px;height:60px;display:block;background:var
 .sybars .barcol small{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9.5px;max-height:70px;overflow:hidden}
 .sybars{height:170px}
 #eamode{flex-wrap:wrap}
+
+/* Eser dizeği */
+.scorewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px 0;margin:6px 0 4px;overscroll-behavior-x:contain}
+svg.score{display:block}
+.score .sl{stroke:var(--muted);stroke-width:1}
+.score .barl{stroke:var(--muted);stroke-width:1.2} .score .barl.end{stroke-width:2.5}
+.score .ledger{stroke:var(--ink);stroke-width:1.2}
+.score .clef{font:40px "Noto Music","Segoe UI Symbol","Apple Symbols",serif;fill:var(--ink)}
+.score .meter{font:700 15px var(--display);fill:var(--ink)}
+.score .head{fill:var(--ink)} .score .head.hollow{fill:none;stroke:var(--ink);stroke-width:1.6}
+.score .stem,.score .flag{stroke:var(--ink);stroke-width:1.3;fill:none}
+.score rect{fill:var(--ink)}
+.score .rest{fill:none;stroke:var(--ink);stroke-width:2}
+.score .acc{font:18px "Noto Music","Segoe UI Symbol",var(--ui);fill:var(--ink);text-anchor:middle}
+.score .acck{font:600 8px var(--ui);fill:var(--teal)}
+.score .va{font:italic 600 9px var(--ui);fill:var(--muted)}
+.score .pname{font:500 8.5px var(--ui);fill:var(--teal);text-anchor:middle}
+.score .sn.cur .head{fill:var(--accent)} .score .sn.cur .head.hollow{fill:none;stroke:var(--accent)} .score .sn.cur .stem{stroke:var(--accent)}
+.score .sn.ok .head{fill:var(--ok)} .score .sn.ok .head.hollow{fill:none;stroke:var(--ok)}
+.score .sn.bad .head{fill:#D2553A} .score .sn.bad .head.hollow{fill:none;stroke:#D2553A}
+.score .sn.miss .head{fill:var(--muted);opacity:.5}

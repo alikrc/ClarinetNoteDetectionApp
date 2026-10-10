@@ -16,9 +16,12 @@
 //   dynamics{ note, sec, shape }              crescendo / decrescendo / messa di voce
 //   seyir   { makam, sec, min }               serbest çalma (taksim), en az min seyir puanı
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
+//   piece   { id, mode: "tempo"|"free", min } etüt çal: tempoda en az min % doğru nota, serbestte en çok min hata
 //   hold'a quality eklenirse ses temizliği de en az o kadar olmalı
 
 const LCORE = typeof module !== "undefined" ? require("./core.js") : { noteName, nearestPerde };
+// Etütler repertoire.js'te; Node'da gerektiğinde yüklenir (tarayıcıda repertoire.js lessons.js'ten sonra gelir)
+const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : { etudeById };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
   : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS };
 
@@ -718,6 +721,15 @@ const ILERI = [
     ] }
 ];
 
+// Etütleri derslere ekle: temel derslerde serbest takip, makam derslerinde tempolu çalma
+const addStep = (id, st) => { const l = [...LESSONS, ...BASLANGIC, ...TEKNIK2, ...MAKAM2, ...ILERI].find(x => x.id === id); if(l) l.steps.push(st); };
+addStep("sol-el-2", { type:"piece", id:"e-sol-el", mode:"free", min:4 });
+addStep("sag-el", { type:"piece", id:"e-iki-el", mode:"free", min:4 });
+addStep("klarino", { type:"piece", id:"e-register", mode:"tempo", min:60 });
+for(const mk of ["rast","ussak","huseyni","hicaz","nihavend","kurdi","saba","segah","huzzam"]) addStep(mk, { type:"piece", id:"e-" + mk, mode:"tempo", min:65 });
+addStep("usul", { type:"piece", id:"e-semai", mode:"tempo", min:60 });
+addStep("ritim-ileri", { type:"piece", id:"e-aksak", mode:"tempo", min:55 });
+
 // Yeni dersleri müfredattaki yerlerine yerleştir
 LESSONS.unshift(...BASLANGIC);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "vibrato") + 1, 0, ...TEKNIK2);
@@ -767,6 +779,9 @@ function stepTitle(step, lang = "tr"){
     case "vibrato": return (en ? "Vibrato: " : "Vibrato: ") + nn(step.note) + " · " + step.sec + (en ? " s of even vibrato" : " sn düzenli vibrato");
     case "glide": return (en ? "Glissando: " : "Glissando: ") + nn(step.from) + " → " + nn(step.to) + " · " + step.n + (en ? " times" : " kez");
     case "read": return (en ? "Read: " : "Oku: ") + pick(step.title, lang);
+    case "piece": { const e = LREP().etudeById(step.id);
+      return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
+        : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru")); }
     case "rhythm": {
       const what = step.usul ? "Usul " + LLEARN.USULS.find(u => u.id === step.usul).name : pick(RHYTHM_NAMES[step.pattern], lang);
       return (en ? "Rhythm: " : "Ritim: ") + what + " · " + step.tempo + (en ? " bpm" : " vuruş/dk") + (step.silent ? (en ? " · metronome only for the count-in" : " · metronom yalnızca sayımda") : "") +
@@ -790,6 +805,7 @@ function stepOk(step, res){
     case "read": return v >= 1;
     case "rhythm": case "seyir": case "ear": return v >= step.min;
     case "dynamics": return v >= 1;
+    case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
     case "notes": return v <= step.maxMiss;
     case "quiz": return v >= step.min;
     case "scale": return v >= step.min;
@@ -803,7 +819,8 @@ function stepOk(step, res){
 function better(step, a, b){
   if(!b) return a;
   if(!a) return b;
-  return step.type === "notes" ? (a.v <= b.v ? a : b) : (a.v >= b.v ? a : b);
+  const lowerBetter = step.type === "notes" || (step.type === "piece" && step.mode === "free");
+  return lowerBetter ? (a.v <= b.v ? a : b) : (a.v >= b.v ? a : b);
 }
 
 // prog: { [lessonId]: { s: { [adım]: {v, ok} }, d: "YYYY-MM-DD" (bitiş günü) } }

@@ -376,7 +376,7 @@ ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.inclu
 
 console.log('\n[22] Dersler');
 const D = require('./lessons.js');
-const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear'];
+const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear','piece'];
 const SK2 = require('./skills.js');
 const inR = w => w >= LOW_NOTE && w <= HIGH_NOTE && fingeringsFor(w).length > 0;
 let lsErr = [];
@@ -401,6 +401,7 @@ for(const l of D.LESSONS){
     if(st.type === 'seyir' && (!L.makamById(st.makam) || !(st.sec >= 20) || !(st.min > 0))) lsErr.push(tag + ' seyir');
     if(st.type === 'ear' && (!['abx','makam'].includes(st.mode) || st.min > st.n || (st.mode === 'makam' && !(st.pool && st.pool.length >= 4 && st.pool.every(id => L.makamById(id)))))) lsErr.push(tag + ' kulak');
     if(st.quality != null && !(st.quality > 0 && st.quality <= 100)) lsErr.push(tag + ' ses kalitesi');
+    if(st.type === 'piece' && (!require('./repertoire.js').etudeById(st.id) || !['tempo','free'].includes(st.mode) || !(st.min >= 0))) lsErr.push(tag + ' eser');
     // Art arda iki farklı perde aynı yazılı notaya düşerse sırayla çalmada ayırt edilemez
     if(st.commas){ const w = D.stepNotes(st); if(w.some((x, k) => k && x === w[k-1] && st.commas[k] !== st.commas[k-1])) lsErr.push(tag + ' farkli perde ayni yazili nota'); }
     for(const lang of ['tr','en']){ const t = D.stepTitle(st, lang); if(!t || /undefined|null|NaN/.test(t)) lsErr.push(tag + ' baslik ' + lang + ': ' + t); }
@@ -520,5 +521,68 @@ console.log('\n[23] Beceri olcumleri: ritim, ses kalitesi, dinamik, seyir, kulak
   ok(L.MAKAMS.every(mk => { const p = S.makamPhrase(mk, () => 0.3); return p[0] === mk.durak && p[p.length-1] === mk.durak && p.includes(mk.guclu); }), 'makam ezgisi durakta baslayip bitiyor, gucluye ugruyor');
 }
 
-console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
-process.exit(fail?1:0);
+console.log('\n[24] Repertuvar: nota metni, koma isaretleri, MusicXML, tempolu calma');
+const R = require('./repertoire.js');
+(async () => {
+  const p = R.parseScoreText('Sol4 Segâh:2 | Dik_Kürdî:0.5 -:1 Bb4 Mi♭5:1,5 xx Sol4:0');
+  ok(p.notes.length === 6 && p.notes[1].c === 17 && p.notes[1].w === 71 && p.notes[1].d === 2 && p.notes[2].c === 14 && p.notes[3].rest && p.notes[5].d === 1.5 && p.errors.join() === 'xx,Sol4:0',
+     'nota metni: yazili nota, perde adi, sure, sus, ondalik virgul, hatalar', JSON.stringify(p.errors));
+  ok(R.parseScoreText(R.scoreToText(p.notes)).notes.every((n, i) => n.w === p.notes[i].w && n.c === p.notes[i].c && n.d === p.notes[i].d), 'nota metni geri yaziliyor (gidis-donus)');
+  const acc = (c, w) => { const a = R.turkishAccidental(c, w); return a.sym + a.k; };
+  ok(acc(17,71) === '♭-1' && acc(48,78) === '♯4' && acc(27,73) === '♯5' && acc(36,75) === '♭-4' && acc(0,67) === '0' && acc(13,70) === '♭-5',
+     'AEU koma isaretleri: Segâh koma bemol, Evc bakiye diyez, Hicaz kucuk mucenneb, Hisar bakiye bemol');
+  let etErr = [];
+  for(const e of R.ETUDES){
+    const r = R.parseScoreText(e.text);
+    if(r.errors.length) etErr.push(e.id + ' hata ' + r.errors.join(','));
+    if(!r.notes.every(n => n.rest || (n.w >= LOW_NOTE && n.w <= HIGH_NOTE))) etErr.push(e.id + ' aralik');
+    const unit = 4 / e.meter[1], bar = e.meter[0] * unit, total = r.notes.reduce((a, n) => a + n.d, 0);
+    if(Math.abs(total / bar - Math.round(total / bar)) > 1e-9) etErr.push(e.id + ' olcu ' + total + '/' + bar);
+    if(e.makam){
+      const mk = L.makamById(e.makam), sc = new Set([...mk.asc, ...mk.desc, mk.yeden].map(C.mod53));
+      const out = r.notes.filter(n => !n.rest && (n.c === null || !sc.has(C.mod53(n.c))));
+      if(out.length) etErr.push(e.id + ' dizi disi ' + out.map(n => n.c).join(','));
+      const last = r.notes.filter(n => !n.rest).pop();
+      if(C.mod53(last.c) !== C.mod53(mk.durak)) etErr.push(e.id + ' durakta bitmiyor');
+    }
+    if(!e.name.tr || !e.name.en || !(e.tempo >= 40)) etErr.push(e.id + ' bilgi');
+  }
+  ok(R.ETUDES.length >= 14 && etErr.length === 0, R.ETUDES.length + ' ozgun etut: hatasiz, calinabilir, olculer tam, makam dizisinde, durakta bitiyor', etErr.join(' | '));
+
+  const xml = `<?xml version="1.0"?><score-partwise><work><work-title>Deneme</work-title></work><part-list/><part id="P1">
+    <measure number="1"><attributes><divisions>2</divisions><time><beats>3</beats><beat-type>4</beat-type></time></attributes>
+      <direction><sound tempo="90"/></direction>
+      <note><pitch><step>B</step><alter>-0.1132</alter><octave>4</octave></pitch><duration>2</duration></note>
+      <note><pitch><step>F</step><alter>0.9057</alter><octave>5</octave></pitch><duration>1</duration><tie type="start"/></note>
+      <note><pitch><step>F</step><alter>0.9057</alter><octave>5</octave></pitch><duration>1</duration><tie type="stop"/></note>
+      <note><chord/><pitch><step>A</step><octave>4</octave></pitch><duration>1</duration></note>
+      <note><rest/><duration>2</duration></note></measure>
+    <measure number="2"><note><pitch><step>G</step><octave>4</octave></pitch><duration>6</duration></note></measure></part></score-partwise>`;
+  const mx = R.parseMusicXML(xml);
+  ok(mx.title === 'Deneme' && mx.tempo === 90 && mx.beats === 3 && mx.notes.length === 4 && mx.notes[0].c === 17 && mx.notes[1].c === 48 && mx.notes[1].d === 1 && mx.notes[2].rest && mx.notes[3].d === 3 && mx.notes[3].c === 0,
+     'MusicXML: koma (alter), bagli nota, akor, sus, divisions, tempo', JSON.stringify(mx.notes.map(n => [n.c, n.d])));
+  // .mxl: zip içinde META-INF/container.xml + nota dosyası
+  const zlib = require('zlib');
+  const entries = [['META-INF/container.xml', '<container><rootfiles><rootfile full-path="score.xml"/></rootfiles></container>', 0], ['score.xml', xml, 8]];
+  const parts = [], central = []; let off = 0;
+  for(const [name, text, method] of entries){
+    const raw = Buffer.from(text), data = method ? zlib.deflateRawSync(raw) : raw, nb = Buffer.from(name);
+    const lh = Buffer.alloc(30); lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(method, 8); lh.writeUInt32LE(data.length, 18); lh.writeUInt32LE(raw.length, 22); lh.writeUInt16LE(nb.length, 26);
+    const ch = Buffer.alloc(46); ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(method, 10); ch.writeUInt32LE(data.length, 20); ch.writeUInt32LE(raw.length, 24); ch.writeUInt16LE(nb.length, 28); ch.writeUInt32LE(off, 42);
+    parts.push(lh, nb, data); central.push(ch, nb); off += 30 + nb.length + data.length;
+  }
+  const cd = Buffer.concat(central), eocd = Buffer.alloc(22); eocd.writeUInt32LE(0x06054b50, 0); eocd.writeUInt16LE(entries.length, 8); eocd.writeUInt16LE(entries.length, 10); eocd.writeUInt32LE(cd.length, 12); eocd.writeUInt32LE(off, 16);
+  const zip = Buffer.concat([...parts, cd, eocd]);
+  const fromZip = await R.unzipFirstScore(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.length));
+  ok(R.parseMusicXML(fromZip).notes.length === 4, '.mxl (sikistirilmis MusicXML) aciliyor');
+
+  const nt = R.noteTimes(R.parseScoreText('Sol4 La4:2 - Si4').notes, 1000, 500);
+  ok(nt.times.length === 3 && nt.times[1].t === 1500 && nt.times[2].t === 3000 && nt.beats === 5, 'notalarin beklenen zamanlari (sus atlanir)');
+  const al = R.alignPerformance(nt.times, [1020, 1480, 2990], t => t < 1400 ? 67 : t < 2000 ? 69 : 72, 200);
+  ok(al.notes.map(n => n.state).join() === 'ok,ok,pitch' && al.wrong === 1 && Math.abs(al.pitchRate - 2/3) < 1e-9, 'tempolu calma: dogru nota, yanlis perde ve zamanlama');
+  const al2 = R.alignPerformance(nt.times, [1020], () => 67, 200);
+  ok(al2.missed === 2, 'calinmayan notalar kacan sayiliyor');
+
+  console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
+  process.exit(fail?1:0);
+})();
